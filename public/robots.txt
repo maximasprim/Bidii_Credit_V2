@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://www.bidiicreditkenya.co.ke/sitemap.xml

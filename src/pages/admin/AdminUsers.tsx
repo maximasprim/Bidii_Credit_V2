@@ -1,0 +1,278 @@
+import { useEffect, useState } from "react";
+import { AlertCircle, Pencil, Trash2, RotateCcw, Check, X } from "lucide-react";
+import { adminGet, adminPost, adminPatch, adminDelete, getCurrentAdminId } from "../../lib/adminApi";
+import { usePageMeta } from "../../lib/usePageMeta";
+import StatusBadge from "../../components/admin/StatusBadge";
+
+type AdminUser = {
+  id: string;
+  username: string;
+  is_active: boolean;
+  created_at: string;
+};
+
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-KE", { dateStyle: "medium" });
+}
+
+export default function AdminUsers() {
+  usePageMeta("Admin Users");
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [listError, setListError] = useState<string | null>(null);
+  const [reloadTrigger, setReloadTrigger] = useState(0);
+  const [loadedTrigger, setLoadedTrigger] = useState(-1);
+  const loading = loadedTrigger !== reloadTrigger;
+  const currentId = getCurrentAdminId();
+
+  const [newUsername, setNewUsername] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editUsername, setEditUsername] = useState("");
+  const [editPassword, setEditPassword] = useState("");
+  const [editError, setEditError] = useState<string | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    adminGet<{ items: AdminUser[] }>("/api/admin/users")
+      .then((data) => {
+        if (cancelled) return;
+        setUsers(data.items);
+        setListError(null);
+        setLoadedTrigger(reloadTrigger);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setListError(err.message ?? "Couldn't load admin users.");
+        setLoadedTrigger(reloadTrigger);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadTrigger]);
+
+  function reload() {
+    setReloadTrigger((n) => n + 1);
+  }
+
+  async function onCreate(e: React.FormEvent) {
+    e.preventDefault();
+    setCreateError(null);
+    setCreating(true);
+    try {
+      await adminPost("/api/admin/users", { username: newUsername, password: newPassword });
+      setNewUsername("");
+      setNewPassword("");
+      reload();
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : "Couldn't create admin.");
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  function startEdit(user: AdminUser) {
+    setEditingId(user.id);
+    setEditUsername(user.username);
+    setEditPassword("");
+    setEditError(null);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditError(null);
+  }
+
+  async function saveEdit(id: string) {
+    setSavingEdit(true);
+    setEditError(null);
+    try {
+      const body: Record<string, string> = { username: editUsername };
+      if (editPassword) body.password = editPassword;
+      await adminPatch(`/api/admin/users/${id}`, body);
+      setEditingId(null);
+      reload();
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : "Couldn't save changes.");
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
+  async function toggleActive(user: AdminUser) {
+    const action = user.is_active ? "deactivate" : "reactivate";
+    if (user.is_active && !confirm(`Deactivate ${user.username}? They'll lose dashboard access immediately.`)) return;
+    try {
+      if (user.is_active) {
+        await adminDelete(`/api/admin/users/${user.id}`);
+      } else {
+        await adminPatch(`/api/admin/users/${user.id}`, { is_active: true });
+      }
+      reload();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : `Couldn't ${action} this admin.`);
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl border border-mist-200 bg-surface p-5">
+        <h2 className="mb-4 font-display text-sm font-bold" style={{ color: "var(--color-ink-900)" }}>
+          Add a new admin
+        </h2>
+        {createError && (
+          <div className="mb-4 flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm text-red-600">
+            <AlertCircle size={16} />
+            {createError}
+          </div>
+        )}
+        <form onSubmit={onCreate} className="flex flex-wrap items-end gap-3">
+          <div className="min-w-[160px] flex-1">
+            <label className="mb-1.5 block text-sm text-ink-500">Username</label>
+            <input
+              value={newUsername}
+              onChange={(e) => setNewUsername(e.target.value)}
+              minLength={3}
+              required
+              className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm focus:outline-none"
+            />
+          </div>
+          <div className="min-w-[160px] flex-1">
+            <label className="mb-1.5 block text-sm text-ink-500">Password</label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              minLength={8}
+              required
+              className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm focus:outline-none"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={creating}
+            className="rounded-full px-6 py-2.5 text-sm font-semibold text-white transition-transform hover:scale-[1.02] disabled:opacity-60"
+            style={{ backgroundColor: "var(--color-ember-500)" }}
+          >
+            {creating ? "Creating…" : "Create Admin"}
+          </button>
+        </form>
+      </div>
+
+      <div className="rounded-2xl border border-mist-200 bg-surface p-5">
+        <h2 className="mb-4 font-display text-sm font-bold" style={{ color: "var(--color-ink-900)" }}>
+          Existing admins
+        </h2>
+
+        {listError && (
+          <div className="mb-4 flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm text-red-600">
+            <AlertCircle size={16} />
+            {listError}
+          </div>
+        )}
+
+        {loading ? (
+          <p className="text-sm text-ink-500">Loading…</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[560px] text-left text-sm">
+              <thead className="text-xs text-ink-500">
+                <tr>
+                  <th className="px-3 py-2.5 font-medium">Username</th>
+                  <th className="px-3 py-2.5 font-medium">Status</th>
+                  <th className="px-3 py-2.5 font-medium">Created</th>
+                  <th className="px-3 py-2.5 font-medium"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-mist-200">
+                {users.map((u) => {
+                  const isSelf = u.id === currentId;
+                  const isEditing = editingId === u.id;
+                  return (
+                    <tr key={u.id}>
+                      {isEditing ? (
+                        <>
+                          <td className="px-3 py-2.5" colSpan={2}>
+                            <input
+                              value={editUsername}
+                              onChange={(e) => setEditUsername(e.target.value)}
+                              className="mb-1.5 w-full rounded-lg border border-mist-200 px-3 py-1.5 text-sm focus:outline-none"
+                              placeholder="Username"
+                            />
+                            <input
+                              type="password"
+                              value={editPassword}
+                              onChange={(e) => setEditPassword(e.target.value)}
+                              className="w-full rounded-lg border border-mist-200 px-3 py-1.5 text-sm focus:outline-none"
+                              placeholder="New password (leave blank to keep current)"
+                            />
+                            {editError && <p className="mt-1 text-xs text-red-500">{editError}</p>}
+                          </td>
+                          <td className="px-3 py-2.5 text-ink-500">{fmtDate(u.created_at)}</td>
+                          <td className="px-3 py-2.5">
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => saveEdit(u.id)}
+                                disabled={savingEdit}
+                                className="flex h-7 w-7 items-center justify-center rounded-full text-white disabled:opacity-60"
+                                style={{ backgroundColor: "var(--color-ember-500)" }}
+                                title="Save"
+                              >
+                                <Check size={13} />
+                              </button>
+                              <button
+                                onClick={cancelEdit}
+                                className="flex h-7 w-7 items-center justify-center rounded-full border border-mist-200 text-ink-700"
+                                title="Cancel"
+                              >
+                                <X size={13} />
+                              </button>
+                            </div>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="px-3 py-2.5 font-semibold" style={{ color: "var(--color-ink-900)" }}>
+                            {u.username}
+                            {isSelf && <span className="ml-2 text-xs font-normal text-ink-500">(you)</span>}
+                          </td>
+                          <td className="px-3 py-2.5">
+                            <StatusBadge status={u.is_active ? "active" : "inactive"} />
+                          </td>
+                          <td className="px-3 py-2.5 text-ink-500">{fmtDate(u.created_at)}</td>
+                          <td className="px-3 py-2.5">
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => startEdit(u)}
+                                className="flex h-7 w-7 items-center justify-center rounded-full border border-mist-200 text-ink-700 hover:bg-mist-50"
+                                title="Edit"
+                              >
+                                <Pencil size={13} />
+                              </button>
+                              {!isSelf && (
+                                <button
+                                  onClick={() => toggleActive(u)}
+                                  className="flex h-7 w-7 items-center justify-center rounded-full border border-mist-200 text-ink-700 hover:bg-mist-50"
+                                  title={u.is_active ? "Deactivate" : "Reactivate"}
+                                >
+                                  {u.is_active ? <Trash2 size={13} /> : <RotateCcw size={13} />}
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

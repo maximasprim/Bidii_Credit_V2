@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand: deep navy for trust/authority, a single warm orange for action,
+     a warm-tinted gray (not cold slate) so the palette feels Kenyan-warm,
+     not generic-corporate-cold. */
+  --color-navy-950: #061A30;
+  --color-navy-900: #0B2A4A;
+  --color-navy-800: #123B63;
+  --color-navy-700: #1B4A79;
+  --color-navy-600: #285D91;
+
+  --color-ember-500: #F4801F;
+  --color-ember-600: #DB6A0E;
+  --color-ember-400: #F79A4C;
+  --color-ember-100: #FDE8D3;
+
+  --color-mist-50: #F7F5F2;
+  --color-mist-100: #EFEBE4;
+  --color-mist-200: #E3DDD3;
+
+  --color-ink-900: #1B2430;
+  --color-ink-700: #3D4756;
+  --color-ink-500: #647084;
+
+  /* Card/surface background — distinct from page background (--color-mist-50)
+     so dark mode can swap "white cards on a light page" to "raised dark cards
+     on a darker page" by redefining these two independently. */
+  --color-surface: #FFFFFF;
+
+  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Class-based dark mode: every utility generated from the tokens above
+   (bg-mist-50, text-ink-900, border-mist-200, bg-surface, etc.) and every
+   inline style referencing var(--color-*) picks this up automatically —
+   no per-component "dark:" variants needed. Sections that are permanently
+   navy regardless of theme (Hero, PageHero, CTABand, footer) are untouched
+   since they use --color-navy-* directly, which doesn't change here. */
+.dark {
+  --color-mist-50: #0B1220;
+  --color-mist-100: #121B2E;
+  --color-mist-200: #22314A;
+
+  --color-ink-900: #F3F5F8;
+  --color-ink-700: #C3CBD8;
+  --color-ink-500: #8C97AA;
+
+  --color-surface: #101A2C;
+
+  --color-ember-100: #3A2412;
+  --color-ember-600: #FBAE6B;
+
+  color-scheme: dark;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+  }
+  body {
+    font-family: var(--font-body);
+    background-color: var(--color-mist-50);
+    color: var(--color-ink-900);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    width: 100%;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+  }
+  ::selection {
+    background-color: var(--color-ember-400);
+    color: white;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-ember-500);
+    outline-offset: 2px;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.swiper {
+  --swiper-theme-color: var(--color-ember-500);
+  --swiper-pagination-bullet-inactive-color: var(--color-mist-200);
+  --swiper-pagination-bullet-inactive-opacity: 1;
+}
