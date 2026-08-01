@@ -12,7 +12,7 @@ type NewsCategory = "Financial Literacy" | "Product Updates" | "Company News" | 
 
 type Article = {
   id: string;
-  slug: string;
+  slug: string
   title: string;
   category: string;
   excerpt: string;

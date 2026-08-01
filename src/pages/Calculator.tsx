@@ -229,8 +229,8 @@ function CalculatorBody({
         </div>
       )}
 
-      <section className="mx-auto max-w-6xl px-5 py-16 lg:px-8 lg:py-20">
-        <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+      <section className="mx-auto max-w-6xl px-5 py-12 sm:py-16 lg:px-8 lg:py-10">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -295,7 +295,7 @@ function CalculatorBody({
                 </div>
 
                 <div className="mb-6 rounded-xl p-4 text-sm" style={{ backgroundColor: "var(--color-mist-50)" }}>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                     <span className="text-ink-500">Credit worthiness (max installment)</span>
                     <span className="font-semibold tabular" style={{ color: "var(--color-ink-900)" }}>{formatKes(affordability.cw)}</span>
                   </div>
@@ -304,7 +304,7 @@ function CalculatorBody({
               </>
             ) : (
               <div className="mb-6">
-                <div className="mb-2 flex items-center justify-between text-sm">
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 text-sm">
                   <label htmlFor="amount" className="text-ink-500">Loan amount</label>
                   {editingAmount ? (
                     <div className="flex items-center gap-1.5">
@@ -322,7 +322,7 @@ function CalculatorBody({
                             setEditingAmount(false);
                           }
                         }}
-                        className="w-28 rounded-lg border border-mist-200 px-2 py-1 text-right text-sm tabular focus:outline-none"
+                        className="w-24 min-w-0 rounded-lg border border-mist-200 px-2 py-1 text-right text-sm tabular focus:outline-none sm:w-28"
                       />
                       <button
                         type="button"
@@ -369,7 +369,7 @@ function CalculatorBody({
             )}
 
             <div className="mb-7">
-              <div className="mb-2 flex items-center justify-between text-sm">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 text-sm">
                 <label htmlFor="term" className="text-ink-500">Repayment term</label>
                 {editingTerm ? (
                   <div className="flex items-center gap-1.5">
@@ -387,7 +387,7 @@ function CalculatorBody({
                           setEditingTerm(false);
                         }
                       }}
-                      className="w-20 rounded-lg border border-mist-200 px-2 py-1 text-right text-sm tabular focus:outline-none"
+                      className="w-16 min-w-0 rounded-lg border border-mist-200 px-2 py-1 text-right text-sm tabular focus:outline-none sm:w-20"
                     />
                     <span className="text-xs text-ink-500">{tier.term_unit}</span>
                     <button
@@ -476,47 +476,47 @@ function CalculatorBody({
 
             <div className="mt-5 space-y-2 rounded-2xl border border-mist-200 p-5 text-sm">
               <p className="mb-2 font-display text-xs font-bold uppercase tracking-wide text-ink-500">Fees & charges</p>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                 <span className="text-ink-500">Registration fee (paid upfront, separate)</span>
                 <span className="tabular text-ink-700">{formatKes(schedule.registrationFee)}</span>
               </div>
               {schedule.processingFee > 0 && (
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                   <span className="text-ink-500">Loan processing fee ({(tier.processing_fee_rate * 100).toFixed(0)}%)</span>
                   <span className="tabular text-ink-700">{formatKes(schedule.processingFee)}</span>
                 </div>
               )}
               {schedule.lifeInsuranceFee > 0 && (
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                   <span className="text-ink-500">Life insurance fee ({(tier.life_insurance_fee_rate * 100).toFixed(0)}%)</span>
                   <span className="tabular text-ink-700">{formatKes(schedule.lifeInsuranceFee)}</span>
                 </div>
               )}
               {schedule.chattelFee > 0 && (
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                   <span className="text-ink-500">Chattel/legal fee</span>
                   <span className="tabular text-ink-700">{formatKes(schedule.chattelFee)}</span>
                 </div>
               )}
               {schedule.inchargeFee > 0 && (
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                   <span className="text-ink-500">Incharge fee</span>
                   <span className="tabular text-ink-700">{formatKes(schedule.inchargeFee)}</span>
                 </div>
               )}
               {schedule.exciseDuty > 0 && (
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                   <span className="text-ink-500">Excise duty (20% on LPF + chattel)</span>
                   <span className="tabular text-ink-700">{formatKes(schedule.exciseDuty)}</span>
                 </div>
               )}
               {tier.guarantors !== null && (
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                   <span className="text-ink-500">Guarantors required</span>
                   <span className="tabular text-ink-700">{tier.guarantors}</span>
                 </div>
               )}
-              <div className="flex items-center justify-between border-t border-mist-200 pt-2 font-semibold">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-t border-mist-200 pt-2 font-semibold">
                 <span style={{ color: "var(--color-ink-900)" }}>Net amount disbursed</span>
                 <span className="tabular" style={{ color: "var(--color-ink-900)" }}>{formatKes(schedule.netDisbursed)}</span>
               </div>
@@ -524,10 +524,10 @@ function CalculatorBody({
 
             <button
               onClick={downloadCsv}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold text-white transition-transform hover:scale-[1.02]"
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 text-center text-sm font-semibold text-white transition-transform hover:scale-[1.02]"
               style={{ backgroundColor: "var(--color-navy-900)" }}
             >
-              <Download size={16} />
+              <Download size={16} className="shrink-0" />
               Download Repayment Schedule (CSV)
             </button>
             <p className="mt-3 text-xs text-ink-500">
@@ -540,12 +540,12 @@ function CalculatorBody({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="rounded-3xl border border-mist-200 bg-surface p-5 sm:p-7"
+            className="flex flex-col rounded-3xl border border-mist-200 bg-surface p-5 sm:p-7"
           >
             <p className="mb-4 font-display text-sm font-bold" style={{ color: "var(--color-ink-900)" }}>
               Outstanding balance over time
             </p>
-            <div className="h-64 w-full">
+            <div className="h-56 w-full sm:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={schedule.rows} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
                   <defs>
@@ -556,7 +556,7 @@ function CalculatorBody({
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-mist-200)" />
                   <XAxis dataKey="period" tick={{ fontSize: 11 }} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11 }} tickLine={false} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
+                  <YAxis tick={{ fontSize: 11 }} tickLine={false} tickFormatter={(v) => `${Math.round(v / 1000)}k`} width={38} />
                   <Tooltip
                     formatter={((v: unknown) => formatKes(Number(Array.isArray(v) ? v[0] : v) || 0)) as never}
                     labelFormatter={(l) => `${periodLabel} ${l}`}
@@ -566,7 +566,7 @@ function CalculatorBody({
               </ResponsiveContainer>
             </div>
 
-            <div className="mt-6 max-h-72 overflow-auto rounded-xl border border-mist-200">
+            <div className="mt-6 max-h-64 overflow-auto rounded-xl border border-mist-200 sm:max-h-72">
               <table className="w-full min-w-[420px] text-left text-sm">
                 <thead className="sticky top-0 bg-mist-50 text-xs text-ink-500">
                   <tr>
@@ -590,6 +590,42 @@ function CalculatorBody({
                 </tbody>
               </table>
             </div>
+            <div className="mt-6 rounded-2xl border border-mist-200 p-5 sm:p-6">
+              <p className="mb-3 font-display text-xs font-bold uppercase tracking-wide text-ink-500">
+                What you'll need for {product.name}
+              </p>
+              <div className="max-h-70 overflow-auto pr-1 sm:max-h-70">
+                {product.eligibility.length > 0 && (
+                  <>
+                    <p className="mb-1.5 text-xs font-semibold text-ink-700">Eligibility</p>
+                    <ul className="mb-4 space-y-1 text-xs text-ink-700">
+                      {product.eligibility.map((item) => (
+                        <li key={item} className="flex gap-2">
+                          <span className="text-ink-500">•</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+                {product.requirements.length > 0 && (
+                  <>
+                    <p className="mb-1.5 text-xs font-semibold text-ink-700">Documents required</p>
+                    <ul className="space-y-1 text-xs text-ink-700">
+                      {product.requirements.map((item) => (
+                        <li key={item} className="flex gap-2">
+                          <span className="text-ink-500">•</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
+            </div>
+            <p className="mt-auto text-center text-sm text-orange-500 italic">
+              Partners For Growth
+            </p>
           </motion.div>
         </div>
       </section>
