@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import { AlertCircle } from "lucide-react";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import { AlertCircle, Home } from "lucide-react";
 import { useAdminAuth } from "../../lib/AdminAuthContext";
 import { usePageMeta } from "../../lib/usePageMeta";
+import loginBg from "../../../public/Bidii_Credit_Logo.png";
 
 export default function AdminLogin() {
   usePageMeta("Admin Login");
@@ -33,14 +34,23 @@ export default function AdminLogin() {
   }
 
   return (
-    <div
-      className="flex min-h-screen items-center justify-center px-5"
-      style={{
-        background:
-          "radial-gradient(ellipse 90% 60% at 20% 0%, var(--color-navy-700) 0%, var(--color-navy-900) 45%, var(--color-navy-950) 100%)",
-      }}
-    >
-      <div className="w-full max-w-sm rounded-3xl bg-surface p-8 shadow-2xl">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-5">
+      <img
+        src={loginBg}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full scale-110 object-cover blur-md"
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 90% 60% at 20% 0%, var(--color-navy-700) 0%, var(--color-navy-900) 45%, var(--color-navy-950) 100%)",
+          opacity: 0.85,
+        }}
+      />
+
+      <div className="relative w-full max-w-sm rounded-3xl bg-surface p-8 shadow-2xl">
         <h1 className="font-display text-xl font-extrabold" style={{ color: "var(--color-ink-900)" }}>
           Bidii<span style={{ color: "var(--color-ember-500)" }}>Credit</span>
         </h1>
@@ -83,6 +93,15 @@ export default function AdminLogin() {
           >
             {isSubmitting ? "Signing in…" : "Sign In"}
           </button>
+          <div className="flex items-center justify-center ">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-navy-700 transition-colors hover:text-ink-700 hover:underline"
+          >
+            <Home size={14} />
+            Back to site
+          </Link>
+          </div>
         </form>
       </div>
     </div>

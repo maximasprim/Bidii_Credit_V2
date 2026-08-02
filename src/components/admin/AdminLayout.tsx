@@ -42,7 +42,7 @@ export default function AdminLayout() {
   return (
     <div className="flex h-screen flex-col overflow-hidden" style={{ backgroundColor: "var(--color-mist-50)" }}>
       <header
-        className="flex shrink-0 items-center justify-between px-5 py-4 lg:px-8"
+        className="flex shrink-0 items-center justify-between px-5 py-2 lg:px-8"
         style={{ backgroundColor: "var(--color-navy-950)" }}
       >
         <div className="flex items-center gap-3">
@@ -54,18 +54,21 @@ export default function AdminLayout() {
             <Menu size={19} />
           </button>
           <span className="flex flex-row justify-between gap-2 place-items-center font-display text-lg font-extrabold text-white">
-                      <div className="inline-block rounded-full  dark:bg-white">
-            <img
-              src={logo}
-              alt="Bidii Credit"
-              className="h-14 w-auto object-contain"
-            />
-          </div>
+            <div className="inline-block rounded-full  dark:bg-white">
+              <img
+                src={logo}
+                alt="Bidii Credit"
+                className="h-14 w-auto object-contain"
+              />
+            </div>
             {/* Bidii<span style={{ color: "var(--color-ember-500)" }}>Credit</span>{" "} */}
-            <span className="font-medium text-ember-500">Admin</span>
+            <div className="flex flex-col justify-center">
+              <span className="font-medium text-ember-500">Admin</span>
+              <span className="font-medium text-gray-500 text-xs italic">Partners For Growth</span>
+            </div>
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2 lg:gap-3">
           <button
             onClick={toggleTheme}
             aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
@@ -78,7 +81,7 @@ export default function AdminLayout() {
             className="flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/20"
           >
             <LogOut size={14} />
-            Log out
+            <span className="hidden sm:inline">Log out</span>
           </button>
         </div>
       </header>
@@ -126,10 +129,10 @@ export default function AdminLayout() {
                 style={({ isActive }) =>
                   isActive
                     ? {
-                        borderColor: "var(--color-ember-500)",
-                        color: "var(--color-ink-900)",
-                        backgroundColor: "var(--color-mist-50)",
-                      }
+                      borderColor: "var(--color-ember-500)",
+                      color: "var(--color-ink-900)",
+                      backgroundColor: "var(--color-mist-50)",
+                    }
                     : undefined
                 }
               >

@@ -179,13 +179,13 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="border-t border-mist-200 bg-white px-5 py-4 lg:hidden">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-500">Products</p>
-          <div className="mb-4 grid grid-cols-3 gap-1">
+          <div className="mb-4 flex flex-col gap-1">
             {loanProducts.map((p) => (
               <Link
                 key={p.slug}
                 to={`/products/${p.slug}`}
                 onClick={() => setMobileOpen(false)}
-                className="rounded-lg bg-mist-50 px-3 py-2 text-xs text-ink-700"
+                className="rounded-lg px-3 py-1 text-xs text-ink-700"
               >
                 {p.name}
               </Link>

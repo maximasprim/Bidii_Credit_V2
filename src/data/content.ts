@@ -574,7 +574,7 @@ export const articles: Article[] = [
 
 export const downloads: DownloadItem[] = [
   { title: "Business Loan Application Form", category: "Application Forms", fileType: "PDF", size: "240 KB", description: "The standard form for business loan applications, including the required guarantor section." },
-  { title: "Asset Finance Application Form", category: "Application Forms", fileType: "PDF", size: "265 KB", description: "Application form for financing motorbikes, machinery, and commercial equipment." },
+  { title: "Rental Income Loan Application Form", category: "Application Forms", fileType: "PDF", size: "265 KB", description: "Application form for financing landlords and property owners." },
   { title: "SME Loan Application Pack", category: "Application Forms", fileType: "DOCX", size: "310 KB", description: "Full documentation pack for registered SME facilities, including financial statement templates." },
   // { title: "Salary Advance Consent Form", category: "Application Forms", fileType: "PDF", size: "120 KB", description: "Payroll verification consent required for salary advance applications." },
   { title: "Business Loans Brochure", category: "Product Brochures", fileType: "PDF", size: "1.1 MB", description: "Rates, terms, and eligibility overview for the Business Loans product." },
@@ -583,7 +583,7 @@ export const downloads: DownloadItem[] = [
   { title: "Sample Repayment Schedule", category: "Statements & Guides", fileType: "PDF", size: "150 KB", description: "An example month-by-month repayment schedule for a 12-month business loan." },
   { title: "First-Time Borrower's Guide", category: "Statements & Guides", fileType: "PDF", size: "620 KB", description: "A short guide to preparing documents and understanding your offer before you apply." },
   { title: "Terms and Conditions", category: "Legal & Compliance", fileType: "PDF", size: "410 KB", description: "Standard terms and conditions governing all Bidii Credit loan products." },
-  { title: "Data Privacy Policy", category: "Legal & Compliance", fileType: "PDF", size: "280 KB", description: "How customer data is collected, used, and protected." },
+  // { title: "Data Privacy Policy", category: "Legal & Compliance", fileType: "PDF", size: "280 KB", description: "How customer data is collected, used, and protected." },
   // { title: "Complaints Handling Procedure", category: "Legal & Compliance", fileType: "PDF", size: "195 KB", description: "How to raise a complaint and what response times to expect." },
 ];
 
