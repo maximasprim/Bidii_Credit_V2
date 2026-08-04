@@ -197,7 +197,7 @@ export const loanProducts: LoanProduct[] = [
       { q: "Are there any extra charges?", a: "Legal and valuation charges apply, and these are communicated upfront with no hidden fees." },
     ],
     tiers: [
-      { id: "standard", label: "Auto Loan", minAmount: 50000, maxAmount: 5000000, termUnit: "months", minTerm: 3, maxTerm: 24, repaymentFrequency: "monthly", interestRate: 0.05, interestBasis: "per_month", registrationFee: 700, processingFeeRate: 0.04, lifeInsuranceFeeRate: 0.01, chattelFee: 3500, inchargeFee: 1500, exciseDutyOnFeesRate: 0.20, guarantors: null },
+      { id: "standard", label: "Auto Loan", minAmount: 50000, maxAmount: 5000000, termUnit: "months", minTerm: 3, maxTerm: 24, repaymentFrequency: "monthly", interestRate: 0.05, interestBasis: "per_month", registrationFee: 700, processingFeeRate: 0.04, lifeInsuranceFeeRate: 0.01, chattelFee: 3500, inchargeFee: 1500, trackingFeePerMonth: 1500,exciseDutyOnFeesRate: 0.20, guarantors: null },
       { id: "jikuze-auto", label: "Jikuze Auto (vehicles 21-25 yrs)", minAmount: 50000, maxAmount: 150000, termUnit: "months", minTerm: 3, maxTerm: 9, repaymentFrequency: "monthly", interestRate: 0.075, interestBasis: "per_month", registrationFee: 700, processingFeeRate: 0.04, lifeInsuranceFeeRate: 0.01, chattelFee: 3500, trackingFeePerMonth: 1500, exciseDutyOnFeesRate: 0.20, guarantors: null },
     ],
   },

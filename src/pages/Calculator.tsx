@@ -25,6 +25,16 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
+/**
+ * The tracking fee's KES-per-month rate isn't fixed - it varies by which
+ * tracking company (e.g. Regent/Jawabu) handles a given vehicle, per Bidii's
+ * Auto/Logbook training material. This range keeps the slider centered on
+ * the standard 1,500/month rate while allowing for that variance.
+ */
+const TRACKING_FEE_MIN = 500;
+const TRACKING_FEE_MAX = 3000;
+const TRACKING_FEE_STEP = 100;
+
 type ScheduleRow = {
   period: number;
   payment: number;
@@ -33,7 +43,7 @@ type ScheduleRow = {
   balance: number;
 };
 
-function buildSchedule(tier: LoanTier, amount: number, term: number) {
+function buildSchedule(tier: LoanTier, amount: number, term: number, trackingFeePerMonthOverride?: number) {
   const termInMonths = termToMonths(term, tier.term_unit);
   const interestTotal =
     tier.interest_basis === "flat_over_term" ? amount * tier.interest_rate : amount * tier.interest_rate * termInMonths;
@@ -57,13 +67,16 @@ function buildSchedule(tier: LoanTier, amount: number, term: number) {
   const chattelFee = tier.chattel_fee ?? 0;
   const inchargeFee = tier.incharge_fee ?? 0;
   const exciseDuty = (tier.excise_duty_on_fees_rate ?? 0) * (processingFee + chattelFee);
-  const trackingFeePerMonth = tier.tracking_fee_per_month ?? 0;
+  // Logbook products (standard Auto Loan + Jikuze Auto) carry a monthly vehicle
+  // tracking fee. The rate varies by tracking company, so it's editable here,
+  // defaulting to the tier's configured rate.
+  const trackingFeePerMonth = trackingFeePerMonthOverride ?? tier.tracking_fee_per_month ?? 0;
   const trackingFeeTotal = trackingFeePerMonth * termInMonths;
 
   // Registration fee is paid upfront by the client as a separate facilitation
-  // fee (per the SME appraisal process); everything else is deducted from
-  // the disbursed loan proceeds.
-  const deductedFromLoan = processingFee + lifeInsuranceFee + chattelFee + inchargeFee + exciseDuty;
+  // fee (per the SME appraisal process); everything else - including the
+  // tracking fee - is deducted from the disbursed loan proceeds.
+  const deductedFromLoan = processingFee + lifeInsuranceFee + chattelFee + inchargeFee + exciseDuty + trackingFeeTotal;
   const netDisbursed = amount - deductedFromLoan;
 
   return {
@@ -151,6 +164,10 @@ function CalculatorBody({
   const [term, setTerm] = useState(tier.min_term);
   const [editingAmount, setEditingAmount] = useState(false);
   const [editingTerm, setEditingTerm] = useState(false);
+  // Editable monthly tracking fee for logbook products (standard Auto Loan +
+  // Jikuze Auto). Only rendered when the tier defines tracking_fee_per_month.
+  const [trackingFee, setTrackingFee] = useState(tier.tracking_fee_per_month ?? 0);
+  const [editingTrackingFee, setEditingTrackingFee] = useState(false);
 
   // Check Off Loans are underwritten by salary affordability, not a chosen
   // amount - see the CW formula from Bidii's own check-off training material.
@@ -172,15 +189,22 @@ function CalculatorBody({
     setPrevTierId(firstTier.tier_key);
     setAmount(firstTier.min_amount);
     setTerm(firstTier.min_term);
+    setTrackingFee(firstTier.tracking_fee_per_month ?? 0);
     setEditingAmount(false);
     setEditingTerm(false);
+    setEditingTrackingFee(false);
   } else if (tierId !== prevTierId) {
     setPrevTierId(tierId);
     setAmount((a) => Math.min(Math.max(a, tier.min_amount), tier.max_amount));
     setTerm((t) => Math.min(Math.max(t, tier.min_term), tier.max_term));
+    setTrackingFee(tier.tracking_fee_per_month ?? 0);
     setEditingAmount(false);
     setEditingTerm(false);
+    setEditingTrackingFee(false);
   }
+
+  // Whether this tier's product carries a tracking fee at all (logbook products).
+  const hasTrackingFee = tier.tracking_fee_per_month !== undefined && tier.tracking_fee_per_month !== null;
 
   const affordability = useMemo(() => {
     const cw = Math.max(0, netSalary - basicSalary / 3);
@@ -191,8 +215,8 @@ function CalculatorBody({
 
   const effectiveAmount = product.isAffordabilityBased ? affordability.maxAmount : amount;
   const schedule = useMemo(
-    () => buildSchedule(tier, Math.max(effectiveAmount, 1), term),
-    [tier, effectiveAmount, term]
+    () => buildSchedule(tier, Math.max(effectiveAmount, 1), term, hasTrackingFee ? trackingFee : undefined),
+    [tier, effectiveAmount, term, hasTrackingFee, trackingFee]
   );
 
   const periodLabel = tier.repayment_frequency === "weekly" ? "Week" : "Month";
@@ -435,6 +459,75 @@ function CalculatorBody({
               </div>
             </div>
 
+            {hasTrackingFee && (
+              <div className="mb-7">
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 text-sm">
+                  <label htmlFor="trackingFee" className="text-ink-500">Tracking fee (per month)</label>
+                  {editingTrackingFee ? (
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="number"
+                        autoFocus
+                        value={trackingFee}
+                        min={TRACKING_FEE_MIN}
+                        max={TRACKING_FEE_MAX}
+                        step={TRACKING_FEE_STEP}
+                        onChange={(e) => setTrackingFee(Number(e.target.value))}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            setTrackingFee((f) => clamp(f, TRACKING_FEE_MIN, TRACKING_FEE_MAX));
+                            setEditingTrackingFee(false);
+                          }
+                        }}
+                        className="w-20 min-w-0 rounded-lg border border-mist-200 px-2 py-1 text-right text-sm tabular focus:outline-none sm:w-24"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTrackingFee((f) => clamp(f, TRACKING_FEE_MIN, TRACKING_FEE_MAX));
+                          setEditingTrackingFee(false);
+                        }}
+                        aria-label="Confirm tracking fee"
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white"
+                        style={{ backgroundColor: "var(--color-ember-500)" }}
+                      >
+                        <Check size={12} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold tabular" style={{ color: "var(--color-ink-900)" }}>{formatKes(trackingFee)}</span>
+                      <button
+                        type="button"
+                        onClick={() => setEditingTrackingFee(true)}
+                        aria-label="Enter tracking fee manually"
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-ink-500 hover:bg-mist-100"
+                      >
+                        <Pencil size={12} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <input
+                  id="trackingFee"
+                  type="range"
+                  min={TRACKING_FEE_MIN}
+                  max={TRACKING_FEE_MAX}
+                  step={TRACKING_FEE_STEP}
+                  value={trackingFee}
+                  onChange={(e) => setTrackingFee(Number(e.target.value))}
+                  className="w-full accent-[var(--color-ember-500)]"
+                />
+                <div className="mt-1 flex justify-between text-xs text-ink-500">
+                  <span>{formatKes(TRACKING_FEE_MIN)}</span>
+                  <span>{formatKes(TRACKING_FEE_MAX)}</span>
+                </div>
+                <p className="mt-1.5 text-xs text-ink-500">
+                  Rate varies by tracking company. Charged monthly for the {Math.round(termToMonths(term, tier.term_unit))}-month term (can also be paid upfront annually) and deducted from the net amount disbursed.
+                </p>
+              </div>
+            )}
+
             {product.isAffordabilityBased && (
               <div className="mb-6 rounded-xl p-4" style={{ backgroundColor: "var(--color-mist-50)" }}>
                 <p className="text-xs text-ink-500">Maximum loan amount you qualify for</p>
@@ -502,6 +595,12 @@ function CalculatorBody({
                 <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                   <span className="text-ink-500">Incharge fee</span>
                   <span className="tabular text-ink-700">{formatKes(schedule.inchargeFee)}</span>
+                </div>
+              )}
+              {schedule.trackingFeeTotal > 0 && (
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                  <span className="text-ink-500">Tracking fee ({formatKes(schedule.trackingFeePerMonth)}/month × {Math.round(termToMonths(term, tier.term_unit))})</span>
+                  <span className="tabular text-ink-700">{formatKes(schedule.trackingFeeTotal)}</span>
                 </div>
               )}
               {schedule.exciseDuty > 0 && (
