@@ -143,17 +143,17 @@ export default function Navbar() {
             Apply Now
           </Link>
         </div>
-
-        <div className="flex items-center gap-1 lg:hidden">
-          <button
-            onClick={toggleTheme}
-            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            className="flex h-9 w-9 items-center justify-center"
-            style={{ color: scrolled ? "var(--color-ink-900)" : "white" }}
-          >
-            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-          {/* <button
+        <div className="flex items-center gap-1 md:gap-8 lg:gap-10 lg:hidden">
+          <div className="flex items-center gap-1 lg:hidden">
+            <button
+              onClick={toggleTheme}
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              className="flex h-9 w-9 items-center justify-center"
+              style={{ color: scrolled ? "var(--color-ink-900)" : "white" }}
+            >
+              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+            {/* <button
             className="flex h-9 w-9 items-center justify-center"
             style={{ color: scrolled ? "var(--color-ink-900)" : "white" }}
             onClick={() => setMobileOpen((v) => !v)}
@@ -161,19 +161,20 @@ export default function Navbar() {
           >
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button> */}
-        </div>
+          </div>
 
-        <button
-          className="lg:hidden"
-          onClick={() => setMobileOpen((v) => !v)}
-          aria-label={mobileOpen ? "Close menu" : "Open menu"}
-        >
-          {mobileOpen ? (
-            <X color={scrolled ? "#0B2A4A" : "#ff8000"} />
-          ) : (
-            <Menu color={scrolled ? "#0B2A4A" : "#ff8000"} />
-          )}
-        </button>
+          <button
+            className="lg:hidden"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+          >
+            {mobileOpen ? (
+              <X color={scrolled ? "#0B2A4A" : "#ff8000"} />
+            ) : (
+              <Menu color={scrolled ? "#0B2A4A" : "#ff8000"} />
+            )}
+          </button>
+        </div>
       </div>
 
       {mobileOpen && (

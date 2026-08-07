@@ -8,6 +8,7 @@ import { AdminAuthProvider } from "./lib/AdminAuthContext";
 import { EngagementProvider } from "./lib/EngagementContext";
 import IntentPrompt from "./components/ui/IntentPrompt";
 import LeadCaptureModal from "./components/ui/LeadCaptureModal";
+import { Toaster } from "react-hot-toast";
 
 // Home loads eagerly since it's the most common entry point. Every other
 // route is code-split so a visitor only downloads the page they asked for —
@@ -121,6 +122,27 @@ function Shell() {
       export default function App() {
   return (
       <BrowserRouter>
+      <Toaster 
+      position="top-right"
+      reverseOrder={false}
+      gutter={12}
+      toastOptions={{
+        duration: 4000,
+        style: {
+          background: "#ffffff",
+          color: "#1f2937",
+          borderRadius: "16px",
+          padding: "14px 18px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
+        },
+        success: {
+          duration: 4000,
+        },
+        error: {
+          duration: 5000,
+        },
+      }}
+      />
         <ScrollToTop />
         <Routes>
           <Route path="/admin/*" element={<AdminApp />} />

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, CheckCircle2, Loader2 } from "lucide-react";
 import { useEngagement } from "../../lib/EngagementContext";
 import { submitCrmLead } from "../../lib/crmApi";
+import toast from "react-hot-toast";
 
 export default function LeadCaptureModal() {
   const { modalOpen, pendingContext, closeModal, markCaptured } = useEngagement();
@@ -46,8 +47,11 @@ export default function LeadCaptureModal() {
     if (ok) {
       markCaptured();
       setDone(true);
+      toast.success("Your request has been received. We'll be in touch shortly.", { icon: "✅" });
     } else {
-      setError("Couldn't send that just now - please try again in a moment.");
+      const message = "Couldn't send request - please try again in a moment.";
+      setError(message);
+      toast.error(message);
     }
   }
 
