@@ -6,6 +6,7 @@ import { useState } from "react";
 import PageHero from "../components/ui/PageHero";
 import { usePageMeta } from "../lib/usePageMeta";
 import { apiPost, ApiError } from "../lib/api";
+import { submitCrmLead } from "../lib/crmApi";
 
 const contactSchema = z.object({
   name: z.string().min(2, "Enter your full name"),
@@ -34,6 +35,16 @@ export default function Contact() {
       await apiPost("/api/contact", values);
       setSubmitted(true);
       reset();
+            // Fire-and-forget: they've already given us everything the CRM
+      // needs, so create the lead silently instead of asking again.
+      void submitCrmLead({
+        fullName: values.name,
+        phone: values.phone,
+        email: values.email,
+        sourcePage: "contact",
+        trigger: "contact_submit",
+        message: `${values.subject}: ${values.message}`,
+      });
     } catch (err) {
       setSubmitError(
         err instanceof ApiError

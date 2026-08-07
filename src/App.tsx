@@ -5,6 +5,9 @@ import Footer from "./components/layout/Footer";
 import StickyApplyCTA from "./components/layout/StickyApplyCTA";
 import Home from "./pages/Home";
 import { AdminAuthProvider } from "./lib/AdminAuthContext";
+import { EngagementProvider } from "./lib/EngagementContext";
+import IntentPrompt from "./components/ui/IntentPrompt";
+import LeadCaptureModal from "./components/ui/LeadCaptureModal";
 
 // Home loads eagerly since it's the most common entry point. Every other
 // route is code-split so a visitor only downloads the page they asked for —
@@ -60,65 +63,69 @@ function RouteFallback() {
 
 function Shell() {
   return (
-    <div className="flex min-h-screen flex-col pb-20 lg:pb-0">
-      <Navbar />
-      <main className="flex-1">
+    <EngagementProvider>
+      <div className="flex min-h-screen flex-col pb-20 lg:pb-0">
+        <Navbar />
+        <main className="flex-1">
+          <Suspense fallback={<RouteFallback />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/products" element={<Products />} />
+              <Route path="/products/:slug" element={<ProductDetail />} />
+              <Route path="/calculator" element={<Calculator />} />
+              <Route path="/branches" element={<Branches />} />
+              <Route path="/downloads" element={<Downloads />} />
+              <Route path="/news" element={<News />} />
+              <Route path="/news/:slug" element={<NewsArticle />} />
+              <Route path="/careers" element={<Careers />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/apply" element={<Apply />} />
+              <Route path="/faq" element={<Faq />} />
+              <Route path="*" element={<PlaceholderPage title="Page Not Found" />} />
+            </Routes>
+          </Suspense>
+        </main>
+        <Footer />
+        <StickyApplyCTA />
+        <IntentPrompt />
+        <LeadCaptureModal />
+      </div>
+      </EngagementProvider>
+      );
+}
+
+      function AdminApp() {
+  return (
+      <AdminAuthProvider>
         <Suspense fallback={<RouteFallback />}>
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/products/:slug" element={<ProductDetail />} />
-            <Route path="/calculator" element={<Calculator />} />
-            <Route path="/branches" element={<Branches />} />
-            <Route path="/downloads" element={<Downloads />} />
-            <Route path="/news" element={<News />} />
-            <Route path="/news/:slug" element={<NewsArticle />} />
-            <Route path="/careers" element={<Careers />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/apply" element={<Apply />} />
-            <Route path="/faq" element={<Faq />} />
-            <Route path="*" element={<PlaceholderPage title="Page Not Found" />} />
+            <Route path="login" element={<AdminLogin />} />
+            <Route element={<AdminLayout />}>
+              <Route index element={<AdminOverview />} />
+              <Route path="contacts" element={<AdminContacts />} />
+              <Route path="loan-applications" element={<AdminLoanApplications />} />
+              <Route path="career-applications" element={<AdminCareerApplications />} />
+              <Route path="news" element={<AdminNews />} />
+              <Route path="jobs" element={<AdminJobs />} />
+              <Route path="loan-terms" element={<AdminLoanTerms />} />
+              <Route path="users" element={<AdminUsers />} />
+            </Route>
           </Routes>
         </Suspense>
-      </main>
-      <Footer />
-      <StickyApplyCTA />
-    </div>
-  );
+      </AdminAuthProvider>
+      );
 }
 
-function AdminApp() {
+      export default function App() {
   return (
-    <AdminAuthProvider>
-      <Suspense fallback={<RouteFallback />}>
+      <BrowserRouter>
+        <ScrollToTop />
         <Routes>
-          <Route path="login" element={<AdminLogin />} />
-          <Route element={<AdminLayout />}>
-            <Route index element={<AdminOverview />} />
-            <Route path="contacts" element={<AdminContacts />} />
-            <Route path="loan-applications" element={<AdminLoanApplications />} />
-            <Route path="career-applications" element={<AdminCareerApplications />} />
-            <Route path="news" element={<AdminNews />} />
-            <Route path="jobs" element={<AdminJobs />} />
-            <Route path="loan-terms" element={<AdminLoanTerms />} />
-            <Route path="users" element={<AdminUsers />} />
-          </Route>
+          <Route path="/admin/*" element={<AdminApp />} />
+          <Route path="/*" element={<Shell />} />
         </Routes>
-      </Suspense>
-    </AdminAuthProvider>
-  );
-}
-
-export default function App() {
-  return (
-    <BrowserRouter>
-      <ScrollToTop />
-      <Routes>
-        <Route path="/admin/*" element={<AdminApp />} />
-        <Route path="/*" element={<Shell />} />
-      </Routes>
-    </BrowserRouter>
-  );
+      </BrowserRouter>
+      );
 }

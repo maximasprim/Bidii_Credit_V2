@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Download, Info, Pencil, Check, AlertCircle } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
@@ -7,6 +7,7 @@ import { usePageMeta } from "../lib/usePageMeta";
 import { loanProducts } from "../data/content";
 import { useLoanTiers, type LoanTier } from "../lib/useLoanTiers";
 import { CHECK_OFF_FEES, findCheckOffRateRow, CHECK_OFF_RATE_TABLE } from "../data/checkOffRateTable";
+import { useEngagement } from "../lib/EngagementContext";
 
 function formatKes(n: number, roundOff: boolean = true) {
   return roundOff
@@ -103,6 +104,15 @@ export default function Calculator() {
   usePageMeta("Loan Calculator");
   const { tiersByProduct, loading: tiersLoading, isFallback } = useLoanTiers();
 
+    // Starts/stops the 5-minutes-on-this-page intent timer for as long as this
+  // component is mounted, regardless of which product/tier is selected.
+  const { setOnCalculatorPage } = useEngagement();
+  useEffect(() => {
+    setOnCalculatorPage(true);
+    return () => setOnCalculatorPage(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [productSlug, setProductSlug] = useState(loanProducts[0].slug);
   const product = useMemo(
     () => loanProducts.find((p) => p.slug === productSlug) ?? loanProducts[0],
@@ -185,6 +195,24 @@ function CalculatorBody({
   const [term, setTerm] = useState(tier.min_term);
   const [editingAmount, setEditingAmount] = useState(false);
   const [editingTerm, setEditingTerm] = useState(false);
+    // Fires the "tried to calculate a loan" intent trigger the first time the
+  // visitor genuinely changes amount/term (not when a tier/product switch
+  // resets them back to the tier's defaults - baselineRef tracks that).
+  const { requestIntent } = useEngagement();
+  const hasFiredCalcAttempt = useRef(false);
+  const baselineRef = useRef({ amount: tier.min_amount, term: tier.min_term });
+  useEffect(() => {
+    if (hasFiredCalcAttempt.current) return;
+    if (amount !== baselineRef.current.amount || term !== baselineRef.current.term) {
+      hasFiredCalcAttempt.current = true;
+      requestIntent({
+        sourcePage: "calculator",
+        trigger: "calculator_interaction",
+        productInterest: product.name,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [amount, term]);
   // Editable monthly tracking fee for logbook products (standard Auto Loan +
   // Jikuze Auto). Only rendered when the tier defines tracking_fee_per_month.
   const [trackingFee, setTrackingFee] = useState(tier.tracking_fee_per_month ?? 0);
@@ -807,6 +835,23 @@ function CheckOffCalculatorBody({
   const [loanAmount, setLoanAmount] = useState(50000);
   const [retirementDate, setRetirementDate] = useState("");
 
+    // Fires the "tried to calculate a loan" intent trigger the first time the
+  // visitor changes the amount or term away from their defaults.
+  const { requestIntent } = useEngagement();
+  const hasFiredCalcAttempt = useRef(false);
+  useEffect(() => {
+    if (hasFiredCalcAttempt.current) return;
+    if (loanAmount !== 50000 || termMonths !== 12) {
+      hasFiredCalcAttempt.current = true;
+      requestIntent({
+        sourcePage: "calculator",
+        trigger: "calculator_interaction",
+        productInterest: product.name,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loanAmount, termMonths]);
+
   const result = useMemo(() => {
     const thirdOfBasic = basicSalary / 3;
     const actualNet = netPay - lessArrears;
@@ -1011,7 +1056,7 @@ function CheckOffCalculatorBody({
                   onChange={(e) => setTermMonths(Number(e.target.value))}
                   className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm text-ink-700 focus:outline-none"
                 >
-                  {CHECK_OFF_RATE_TABLE.map((row) => (
+                  {CHECK_OFF_RATE_TABLE.map((row: any) => (
                     <option key={row.durationMonths} value={row.durationMonths}>
                       {row.durationMonths} months ({(row.monthlyInterestRate * 100).toFixed(2)}%/mo)
                     </option>

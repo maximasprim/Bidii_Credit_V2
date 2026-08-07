@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, CheckCircle2, ShieldCheck, AlertCircle, Info } f
 import PageHero from "../components/ui/PageHero";
 import { usePageMeta } from "../lib/usePageMeta";
 import { apiPost, ApiError } from "../lib/api";
+import { submitCrmLead } from "../lib/crmApi";
 import { loanProducts } from "../data/content";
 import { useLoanTiers, type LoanTier } from "../lib/useLoanTiers";
 
@@ -174,6 +175,17 @@ function ApplyBody({
         monthly_income: details.monthlyIncome,
       });
       setSubmitted(true);
+            // Fire-and-forget: the application already has everything the CRM
+      // needs, so create the lead silently instead of asking again.
+      void submitCrmLead({
+        fullName: details.fullName,
+        phone: details.phone,
+        email: details.email,
+        sourcePage: "apply",
+        trigger: "apply_submit",
+        productInterest: `${product.name} (${tier.label})`,
+        message: `Applied for ${formatKes(effectiveAmount)} over ${term} ${tier.term_unit}, estimated installment ${formatKes(estimate.installment)}.`,
+      });
     } catch (err) {
       setSubmitError(
         err instanceof ApiError
