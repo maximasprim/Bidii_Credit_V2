@@ -96,13 +96,22 @@ export default function Downloads() {
               </h2>
               <p className="mt-1.5 text-xs text-ink-500">{d.category}</p>
               <p className="mt-3 flex-1 text-sm leading-relaxed text-ink-700">{d.description}</p>
-              <button
+              {/* <button
                 className="mt-5 flex items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold text-white transition-transform hover:scale-[1.02]"
                 style={{ backgroundColor: "var(--color-navy-900)" }}
               >
                 <Download size={15} />
                 Download
-              </button>
+              </button> */}
+              <a
+                href={d.url}
+                download
+                className="mt-5 flex items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold text-white transition-transform hover:scale-[1.02]"
+                style={{ backgroundColor: "var(--color-navy-900)" }}
+              >
+                <Download size={15} />
+                Download
+              </a>
             </motion.div>
           ))}
         </div>

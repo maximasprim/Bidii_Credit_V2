@@ -485,6 +485,7 @@ export type DownloadItem = {
   fileType: "PDF" | "DOCX";
   size: string;
   description: string;
+  url: string;
 };
 export type NewsCategory = "Financial Literacy" | "Product Updates" | "Company News" | "Customer Stories";
 
@@ -573,16 +574,16 @@ export const articles: Article[] = [
 ];
 
 export const downloads: DownloadItem[] = [
-  { title: "Business Loan Application Form", category: "Application Forms", fileType: "PDF", size: "240 KB", description: "The standard form for business loan applications, including the required guarantor section." },
-  { title: "Rental Income Loan Application Form", category: "Application Forms", fileType: "PDF", size: "265 KB", description: "Application form for financing landlords and property owners." },
-  { title: "SME Loan Application Pack", category: "Application Forms", fileType: "DOCX", size: "310 KB", description: "Full documentation pack for registered SME facilities, including financial statement templates." },
+  { title: "SME Loan Application Pack", category: "Application Forms", fileType: "DOCX", size: "878 KB", description: "Full documentation pack for registered SME facilities, including financial statement templates.", url: "/Downloads/SME Loan Form 2026.pdf" },
+  { title: "CheckOff Loan Application Form", category: "Application Forms", fileType: "PDF", size: "355 KB", description: "The standard form for Government and Non-government Employees loan applications.", url: "/Downloads/BIDII LAF.pdf" },
+  { title: "Rental Income Loan Application Form", category: "Application Forms", fileType: "PDF", size: "878 KB", description: "Application form for financing landlords and property owners.", url: "/Downloads/SME Loan Form 2026.pdf" },
   // { title: "Salary Advance Consent Form", category: "Application Forms", fileType: "PDF", size: "120 KB", description: "Payroll verification consent required for salary advance applications." },
-  { title: "Business Loans Brochure", category: "Product Brochures", fileType: "PDF", size: "1.1 MB", description: "Rates, terms, and eligibility overview for the Business Loans product." },
-  { title: "Asset Finance Brochure", category: "Product Brochures", fileType: "PDF", size: "980 KB", description: "How asset financing works, from valuation to ownership transfer." },
-  { title: "Logbook Loans Brochure", category: "Product Brochures", fileType: "PDF", size: "890 KB", description: "Overview of logbook loan terms, valuation process, and top-up eligibility." },
-  { title: "Sample Repayment Schedule", category: "Statements & Guides", fileType: "PDF", size: "150 KB", description: "An example month-by-month repayment schedule for a 12-month business loan." },
-  { title: "First-Time Borrower's Guide", category: "Statements & Guides", fileType: "PDF", size: "620 KB", description: "A short guide to preparing documents and understanding your offer before you apply." },
-  { title: "Terms and Conditions", category: "Legal & Compliance", fileType: "PDF", size: "410 KB", description: "Standard terms and conditions governing all Bidii Credit loan products." },
+  { title: "Business Loans Brochure", category: "Product Brochures", fileType: "PDF", size: "272 KB", description: "Rates, terms, and eligibility overview for the Business Loans product.", url: "/Downloads/Business Loans Brochures.pdf" },
+  // { title: "Asset Finance Brochure", category: "Product Brochures", fileType: "PDF", size: "980 KB", description: "How asset financing works, from valuation to ownership transfer.", url: "/Downloads/SME Loan Form 2026.pdf" },
+  { title: "Logbook Loan Application Form", category: "Application Forms", fileType: "PDF", size: "878 KB", description: "The Standard Application Form for Logbook Loans.", url: "/Downloads/SME Loan Form 2026.pdf" },
+  { title: "Sample Repayment Schedule", category: "Statements & Guides", fileType: "PDF", size: "150 KB", description: "An example month-by-month repayment schedule for a 12-month business loan.", url: "/Downloads/SME Loan Form 2026.pdf" },
+  { title: "First-Time Borrower's Guide", category: "Statements & Guides", fileType: "PDF", size: "620 KB", description: "A short guide to preparing documents and understanding your offer before you apply.", url: "/Downloads/SME Loan Form 2026.pdf" },
+  { title: "Terms and Conditions", category: "Legal & Compliance", fileType: "PDF", size: "410 KB", description: "Standard terms and conditions governing all Bidii Credit loan products.", url: "/Downloads/SME Loan Form 2026.pdf" },
   // { title: "Data Privacy Policy", category: "Legal & Compliance", fileType: "PDF", size: "280 KB", description: "How customer data is collected, used, and protected." },
   // { title: "Complaints Handling Procedure", category: "Legal & Compliance", fileType: "PDF", size: "195 KB", description: "How to raise a complaint and what response times to expect." },
 ];

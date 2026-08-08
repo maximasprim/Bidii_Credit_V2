@@ -149,7 +149,7 @@ export default function Navbar() {
               onClick={toggleTheme}
               aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
               className="flex h-9 w-9 items-center justify-center"
-              style={{ color: scrolled ? "var(--color-ink-900)" : "white" }}
+              style={{ color: scrolled ? "var(--color-ink-500)" : "var(--color-ink-900)" }}
             >
               {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
             </button>
