@@ -85,7 +85,7 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="mt-9 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/60"
           >
-            {["No hidden charges", "Approval in 24 hours", "38,000+ loans processed"].map((t) => (
+            {["No hidden charges", "Approval in < 6 hours", "38,000+ loans processed"].map((t) => (
               <li key={t} className="flex items-center gap-1.5">
                 <CheckCircle2 size={14} style={{ color: "var(--color-ember-400)" }} />
                 {t}
