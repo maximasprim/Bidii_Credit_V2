@@ -96,7 +96,7 @@ export default function AdminLogin() {
           <div className="flex items-center justify-center ">
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-navy-700 transition-colors hover:text-ink-700 hover:underline"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-orange-500 transition-colors hover:text-orange-400 hover:underline"
           >
             <Home size={14} />
             Back to site

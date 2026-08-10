@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { MessageCircle, MapPin, Phone, Mail, ShieldCheck } from "lucide-react";
 import { loanProducts } from "../../data/content";
-import logo from "../../../public/Bidii_Credit_Logo.png";
+import logo from "../../../public/Bidii-logo.png";
 import {
   FaFacebookF,
   FaInstagram,
@@ -39,13 +39,43 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1.2fr]">
           <div className="sm:col-span-2 lg:col-span-1">
-            <div className="bg-white p-1 rounded-full w-16 h-16 flex items-center justify-center mb-2">
-              <img
-                src={logo}
-                alt="Bidii Credit"
-                className="h-16 w-auto object-contain"
-              />
-            </div>
+            {/* <div className="bg-white p-1 rounded-full w-16 h-16 flex items-center justify-center mb-2"> */}
+             <span className="flex flex-row items-center gap-4 font-display text-lg font-extrabold text-white">
+                {/* Logo + glow */}
+                <div className="relative flex items-center justify-center">
+                  {/* Bright soft glow */}
+                  <div
+                    className="absolute rounded-full pointer-events-none"
+                    style={{
+                      width: "200px",
+                      height: "85px",
+                      background:
+                        "radial-gradient(circle, rgba(251, 125, 83, 0.95) 0%, rgba(223, 177, 131, 0.42) 20%, rgba(248, 150, 52, 0.10) 50%, transparent 70%)",
+                      filter: "blur(12px)",
+                      zIndex: 0,
+                    }}
+                  />
+
+                  {/* Logo */}
+                  <img
+                    src={logo}
+                    alt="Bidii Credit"
+                    className="relative z-10 h-14 w-auto object-contain"
+                  />
+                </div>
+
+                {/* Admin Portal */}
+                {/* <div className="flex flex-col justify-center">
+                  <span className="font-medium text-ember-500">
+                    Admin
+                  </span>
+
+                  <span className="text-xs italic font-medium text-gray-500">
+                    Portal
+                  </span>
+                </div> */}
+              </span>
+            {/* </div> */}
             <span className="font-display text-xl font-extrabold">
               Bidii<span style={{ color: "var(--color-ember-500)" }}>Credit</span>
             </span>

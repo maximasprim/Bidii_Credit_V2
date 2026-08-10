@@ -36,38 +36,40 @@ export default function Navbar() {
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-2 lg:px-8">
         <Link to="/" className="flex items-center gap-2">
-          <div className="">
-            <img
+          {/* <div className=""> */}
+            {/* <img
               src={logo}
               alt="Bidii Credit"
               className="h-14 w-auto object-contain"
-            />
-          </div>
-          {/* <div className="flex flex-col">
-            <span
-              className={cn(
-                "font-display text-xl font-extrabold tracking-tight transition-colors",
-                scrolled ? "text-navy-900" : "text-navy-900"
-              )}
-              style={{ color: scrolled ? "var(--color-navy-900)" : "var(--color-navy-700)" }}
-            >
-              Bidii<span style={{ color: "var(--color-ember-500)" }}>Credit</span>
-            </span>
-            <p className={cn(
-              "text-xs font-medium transition-colors italic",
-              scrolled ? "text-ink-500" : "text-ink-500"
-            )} style={{ color: scrolled ? "var(--color-ink-500)" : "var(--color-ink-500)" }}>
-              Partners For Growth
-            </p>
-          </div> */}
+            /> */}
+          {/* </div> */}
+                       <span className="flex flex-row items-center gap-4 font-display text-lg font-extrabold text-white">
+                {/* Logo + glow */}
+                <div className="relative flex items-center justify-center">
+                  {/* Bright soft glow */}
+                  <div
+                    className="absolute rounded-full pointer-events-none"
+                    style={{
+                      width: "200px",
+                      height: "85px",
+                      background:
+                        "radial-gradient(circle, rgba(251, 125, 83, 0.95) 0%, rgba(223, 177, 131, 0.42) 20%, rgba(248, 150, 52, 0.10) 50%, transparent 70%)",
+                      filter: "blur(12px)",
+                      zIndex: 0,
+                    }}
+                  />
+
+                  {/* Logo */}
+                  <img
+                    src={logo}
+                    alt="Bidii Credit"
+                    className="relative z-10 h-14 w-auto object-contain"
+                  />
+                </div>
+
+            
+              </span>
         </Link>
-        {/* <Link to="/" className="flex items-center gap-2">
-          <img
-            src={logo}
-            alt="Bidii Credit"
-            className="h-16 w-auto object-contain"
-          />
-        </Link> */}
 
         <nav className="hidden items-center gap-1 lg:flex">
           <div

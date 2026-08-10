@@ -17,7 +17,7 @@ import {
 import { useAdminAuth } from "../../lib/AdminAuthContext";
 import { useTheme } from "../../lib/useTheme";
 import { cn } from "../../lib/utils";
-import logo from "../../../public/Bidii_Credit_Logo.png";
+import logo from "../../../public/Bidii-logo.png";
 
 const tabs = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard, end: true },
@@ -42,7 +42,7 @@ export default function AdminLayout() {
   return (
     <div className="flex h-screen flex-col overflow-hidden" style={{ backgroundColor: "var(--color-mist-50)" }}>
       <header
-        className="flex shrink-0 items-center justify-between px-5 py-2 lg:px-8"
+        className="flex shrink-0 items-center justify-between px-1 py-2 lg:px-8"
         style={{ backgroundColor: "var(--color-navy-950)" }}
       >
         <div className="flex items-center gap-3">
@@ -54,18 +54,58 @@ export default function AdminLayout() {
             <Menu size={19} />
           </button>
           <span className="flex flex-row justify-between gap-2 place-items-center font-display text-lg font-extrabold text-white">
-            <div className="inline-block rounded-full  dark:bg-white">
-              <img
-                src={logo}
-                alt="Bidii Credit"
-                className="h-14 w-auto object-contain"
-              />
+            {/* <div className="inline-block rounded-full  dark:bg-white"> */}
+            <div className="relative flex items-center gap-3">
+              {/* <button
+                onClick={() => setSidebarOpen(true)}
+                aria-label="Open menu"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/10 lg:hidden"
+              >
+                <Menu size={19} />
+              </button> */}
+
+              <span className="flex flex-row items-center gap-4 font-display text-lg font-extrabold text-white">
+                {/* Logo + glow */}
+                <div className="relative flex items-center justify-center">
+                  {/* Bright soft glow */}
+                  <div
+                    className="absolute rounded-full pointer-events-none"
+                    style={{
+                      width: "200px",
+                      height: "85px",
+                      background:
+                        "radial-gradient(circle, rgba(251, 125, 83, 0.95) 0%, rgba(223, 177, 131, 0.42) 20%, rgba(248, 150, 52, 0.10) 50%, transparent 70%)",
+                      filter: "blur(12px)",
+                      zIndex: 0,
+                    }}
+                  />
+
+                  {/* Logo */}
+                  <img
+                    src={logo}
+                    alt="Bidii Credit"
+                    className="relative z-10 h-14 w-auto object-contain"
+                  />
+                </div>
+
+                {/* Admin Portal */}
+                <div className="flex flex-col justify-center">
+                  <span className="font-medium text-ember-500">
+                    Admin
+                  </span>
+
+                  <span className="text-xs italic font-medium text-gray-500">
+                    Portal
+                  </span>
+                </div>
+              </span>
             </div>
+            {/* </div> */}
             {/* Bidii<span style={{ color: "var(--color-ember-500)" }}>Credit</span>{" "} */}
-            <div className="flex flex-col justify-center">
+            {/* <div className="flex flex-col justify-center">
               <span className="font-medium text-ember-500">Admin</span>
-              <span className="font-medium text-gray-500 text-xs italic">Partners For Growth</span>
-            </div>
+              <span className="font-medium text-gray-500 text-xs italic">Portal</span>
+            </div> */}
           </span>
         </div>
         <div className="flex items-center gap-1 md:gap-2 lg:gap-3">
