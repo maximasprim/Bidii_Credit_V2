@@ -61,11 +61,11 @@ export default function Hero() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.18 }}
-            className="mt-8 flex flex-wrap items-center gap-4"
+            className="mt-8 flex flex-row items-center gap-4"
           >
             <Link
               to="/apply"
-              className="flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-black/20 transition-transform hover:scale-[1.03]"
+              className="flex items-center gap-2 rounded-full px-2 md:px-4 lg:px-6 py-2.5 md:py-3.5 text-sm font-semibold text-white shadow-lg shadow-black/20 transition-transform hover:scale-[1.03]"
               style={{ backgroundColor: "var(--color-ember-500)" }}
             >
               Apply Now
@@ -73,7 +73,7 @@ export default function Hero() {
             </Link>
             <Link
               to="/calculator"
-              className="rounded-full border border-white/25 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              className="rounded-full border border-white/25 px-2 md:px-4 lg:px-6 py-2.5 md:py-3.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
             >
               Calculate Your Loan
             </Link>
