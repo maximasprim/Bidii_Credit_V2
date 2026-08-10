@@ -12,7 +12,7 @@ export default function BranchesPreview() {
               Branches
             </p>
             <h2 className="mt-3 font-display text-3xl font-extrabold lg:text-4xl" style={{ color: "var(--color-ink-900)" }}>
-              12 branches, one relationship
+              11 branches, one relationship
             </h2>
           </div>
           <Link to="/branches"  className="flex items-center gap-1.5 text-sm font-semibold text-orange-400 hover:text-orange-400/90">

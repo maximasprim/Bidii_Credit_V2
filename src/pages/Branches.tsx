@@ -19,7 +19,7 @@ export default function Branches() {
     <>
       <PageHero
         eyebrow="Branch Locator"
-        title="14 branches, one relationship"
+        title="11 branches, one relationship"
         description="Find the nearest Bidii Credit branch, its opening hours, and a direct line to speak with someone."
       >
         <div className="mx-auto mt-8 flex max-w-md items-center gap-2 rounded-full bg-white/10 px-5 py-3">

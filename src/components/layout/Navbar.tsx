@@ -3,7 +3,7 @@ import { Link, NavLink } from "react-router-dom";
 import { ChevronDown, Menu, X, Sun, Moon } from "lucide-react";
 import { loanProducts } from "../../data/content";
 import { cn } from "../../lib/utils";
-import logo from "../../../public/Bidii_Credit_Logo.png";
+import logo from "../../../public/Bidii-logo.png";
 import { useTheme } from "../../lib/useTheme";
 
 const navLinks = [
@@ -36,14 +36,14 @@ export default function Navbar() {
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-2 lg:px-8">
         <Link to="/" className="flex items-center gap-2">
-          <div className="inline-block rounded-full  dark:bg-white">
+          <div className="">
             <img
               src={logo}
               alt="Bidii Credit"
               className="h-14 w-auto object-contain"
             />
           </div>
-          <div className="flex flex-col">
+          {/* <div className="flex flex-col">
             <span
               className={cn(
                 "font-display text-xl font-extrabold tracking-tight transition-colors",
@@ -59,7 +59,7 @@ export default function Navbar() {
             )} style={{ color: scrolled ? "var(--color-ink-500)" : "var(--color-ink-500)" }}>
               Partners For Growth
             </p>
-          </div>
+          </div> */}
         </Link>
         {/* <Link to="/" className="flex items-center gap-2">
           <img

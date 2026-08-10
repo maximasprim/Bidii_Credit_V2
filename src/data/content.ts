@@ -324,7 +324,7 @@ export const testimonials = [
 ];
 
 export const branches = [
-  { name: "Head Office & Ngong Road", address: "Applewood Adams, Ngong Road", hours: "Mon–Fri 8:00–17:00, Sat 9:00–13:00", phone: "+254 709 840 000", lat: -1.2996122814777669, lng: 36.78084220779777 },
+  { name: "Head Office & Ngong Road", address: "Applewood Adams 3Rd Floor Room 302, Ngong Road", hours: "Mon–Fri 8:00–17:00, Sat 9:00–13:00", phone: "+254 709 840 000", lat: -1.2996122814777669, lng: 36.78084220779777 },
   { name: "Nairobi CBD", address: "Development House, Left Wing Room M13", hours: "Mon–Fri 8:00–17:00, Sat 9:00–13:00", phone: "+254 700 940 151", lat: -1.2881823762218805, lng: 36.82760680965088 },
   { name: "Kitengela", address: "Posta Building, Room 1", hours: "Mon–Fri 8:00–17:00", phone: "+254 715 429 199", lat: -1.5091567326433828, lng: 36.849996001144206 },
   { name: "Kawangware", address: "Nkrumah Seniors Park, 1st Floor", hours: "Mon–Fri 8:00–17:00", phone: "+254 725 270 600", lat: -1.2821434849125164, lng: 36.7524295673231 },
@@ -334,7 +334,7 @@ export const branches = [
   { name: "Machakos", address: "Universal Traders Sacco(UTS), Room TH003R", hours: "Mon–Fri 8:00–17:00", phone: "+254 715 431 447", lat: -1.5190841470447765, lng: 37.27060954352602 },
   { name: "Ruiru", address: "Gituamba Plaza, 2nd Floor Room K4", hours: "Mon–Fri 8:00–17:00", phone: "+254 708 492 346", lat: -1.146817218486526, lng: 36.958949266802314 },
   { name: "Thika", address: "Grace House, 2nd Floor Room 2", hours: "Mon–Fri 8:00–17:00", phone: "+254 113 331 843", lat: -1.2995908293256793, lng: 36.78148593796645 },
-  { name: "Kasarani", address: "Lonak Business Center, Ground Floor HSE B5", hours: "Mon–Fri 8:00–17:00", phone: "+254 790 139 244", lat: -1.2181340233755387, lng: 36.89722759934476 },
+  // { name: "Kasarani", address: "Lonak Business Center, Ground Floor HSE B5", hours: "Mon–Fri 8:00–17:00", phone: "+254 790 139 244", lat: -1.2181340233755387, lng: 36.89722759934476 },
   { name: "Karatina", address: "Cedar Plaza, 2nd Floor Room B08", hours: "Mon–Fri 8:00–17:00", phone: "+254 706 870 801", lat: -0.48100231573421115, lng: 37.12544541283505 },
 ];
 
@@ -359,10 +359,10 @@ export const faqs = [
     q: "What documents do I need to apply?",
     a: "A national ID, KRA PIN, and 3-6 months of M-Pesa or bank statements cover most applications. Business loans additionally require a business permit or registration certificate.",
   },
-  {
-    q: "How do I make a payment?",
-    a: "You can make payments through M-Pesa, bank transfer, or at any Bidii Credit branch. Payment reminders are sent via SMS."
-  },
+  // {
+  //   q: "How do I make a payment?",
+  //   a: "You can make payments through M-Pesa, bank transfer, or at any Bidii Credit branch. Payment reminders are sent via SMS."
+  // },
   {
     q: "Will late repayment affect my CRB status?",
     a: "Yes. Always pay on time to avoid negative score. We report to CRB monthly."
@@ -443,14 +443,14 @@ export const services: Service[] = [
       "SME and business borrowers get complimentary advisory sessions covering cash flow planning, how much debt a business can safely carry, and preparing for larger facilities.",
     bullets: ["Free sessions for SME loan customers", "Cash flow and repayment capacity reviews", "Guidance on formalizing a business for bigger facilities"],
   },
-  {
-    slug: "savings-products",
-    name: "Savings Products",
-    tagline: "A savings account structured around loan top-ups and better future rates.",
-    detail:
-      "A linked savings product that builds a repayment history and unlocks preferential rates on future loans as balances and consistency grow.",
-    bullets: ["No minimum opening balance", "Interest paid quarterly", "Consistent saving improves future loan terms"],
-  },
+  // {
+  //   slug: "savings-products",
+  //   name: "Savings Products",
+  //   tagline: "A savings account structured around loan top-ups and better future rates.",
+  //   detail:
+  //     "A linked savings product that builds a repayment history and unlocks preferential rates on future loans as balances and consistency grow.",
+  //   bullets: ["No minimum opening balance", "Interest paid quarterly", "Consistent saving improves future loan terms"],
+  // },
   {
     slug: "insurance",
     name: "Somosure Insurance",
