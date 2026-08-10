@@ -253,7 +253,11 @@ function CalculatorBody({
   }
 
   // Whether this tier's product carries a tracking fee at all (logbook products).
-  const hasTrackingFee = tier.tracking_fee_per_month !== undefined && tier.tracking_fee_per_month !== null;
+  // const hasTrackingFee = tier.tracking_fee_per_month !== undefined && tier.tracking_fee_per_month !== null;
+  const hasTrackingFee =
+  productSlug === "logbook-loans" &&
+  tier.tracking_fee_per_month !== undefined &&
+  tier.tracking_fee_per_month !== null;
 
   const affordability = useMemo(() => {
     const cw = Math.max(0, netSalary - basicSalary / 3);
