@@ -296,10 +296,10 @@ export const loanProducts: LoanProduct[] = [
 ];
 
 export const stats = [
-  { label: "Disbursed to Kenyan businesses", value: 4.2, suffix: "B", prefix: "KES " },
-  { label: "Loans processed", value: 38000, suffix: "+", prefix: "" },
+  { label: "Customers served", value: 4600, suffix: "+", prefix: "" },
+  { label: "Loans processed", value: 8000, suffix: "+", prefix: "" },
   { label: "Average approval time", value: 6, suffix: "hrs", prefix: "" },
-  { label: "Branches across Kenya", value: 12, suffix: "", prefix: "" },
+  { label: "Branches across Kenya", value: 11, suffix: "", prefix: "" },
 ];
 
 export const testimonials = [
