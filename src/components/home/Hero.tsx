@@ -104,13 +104,13 @@ export default function Hero() {
           <div className="rounded-3xl bg-surface p-6 shadow-2xl shadow-black/30">
             <p className="text-xs font-medium uppercase tracking-wide text-ink-500">Sample business loan</p>
             <p className="mt-2 font-display text-3xl font-extrabold tabular" style={{ color: "var(--color-ink-900)" }}>
-              KES 150,000
+              KES 100,000
             </p>
             <div className="mt-5 space-y-3 border-t border-mist-200 pt-5">
               {[
-                ["Interest rate", "1.5% per month"],
-                ["Repayment term", "12 months"],
-                ["Monthly repayment", "KES 14,125"],
+                ["Interest rate", "12.5% per month"],
+                ["Repayment term", "24 weeks"],
+                ["Monthly repayment", "KES 7,292"],
               ].map(([label, value]) => (
                 <div key={label} className="flex items-center justify-between text-sm">
                   <span className="text-ink-500">{label}</span>

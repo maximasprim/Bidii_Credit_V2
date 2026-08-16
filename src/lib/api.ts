@@ -1,4 +1,9 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? "https://bidii-server.onrender.com";
+export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "https://bidii-server.onrender.com";
+
+/** Builds the public URL for a news article image (path is what's stored in an article's image_urls, e.g. "news/<uuid>_cover.jpg"). */
+export function newsImageUrl(path: string): string {
+  return `${API_BASE_URL}/api/news/images/${path}`;
+}
 
 export class ApiError extends Error {
   status: number;

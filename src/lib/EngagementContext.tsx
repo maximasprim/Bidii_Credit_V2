@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import type { LeadSourcePage, LeadTrigger } from "./crmApi";
 
-const SITE_TIME_THRESHOLD_MS = 7 * 60 * 1000; // 7 minutes anywhere on the site
+const SITE_TIME_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes anywhere on the site
 const CALCULATOR_TIME_THRESHOLD_MS = 3 * 60 * 1000; // 3 minutes on the calculator page
 
 // Once we've shown the opt-in prompt this browser session, don't show it

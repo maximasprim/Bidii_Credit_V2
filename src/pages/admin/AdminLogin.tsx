@@ -1,14 +1,22 @@
 import { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { AlertCircle, Home } from "lucide-react";
 import { useAdminAuth } from "../../lib/AdminAuthContext";
 import { usePageMeta } from "../../lib/usePageMeta";
 import loginBg from "../../../public/Bidii_Credit_Logo.png";
 
+/** Only ever redirect back to a path on this site (never an external URL). */
+function safeRedirectTarget(next: string | null): string {
+  if (next && next.startsWith("/") && !next.startsWith("//")) return next;
+  return "/admin";
+}
+
 export default function AdminLogin() {
   usePageMeta("Admin Login");
   const { isAuthenticated, login } = useAdminAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = safeRedirectTarget(searchParams.get("next"));
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -16,7 +24,7 @@ export default function AdminLogin() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (isAuthenticated) {
-    return <Navigate to="/admin" replace />;
+    return <Navigate to={redirectTo} replace />;
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -25,7 +33,7 @@ export default function AdminLogin() {
     setIsSubmitting(true);
     try {
       await login(username, password);
-      navigate("/admin", { replace: true });
+      navigate(redirectTo, { replace: true });
     } catch {
       setError("Invalid username or password.");
     } finally {
@@ -107,3 +115,114 @@ export default function AdminLogin() {
     </div>
   );
 }
+
+
+// import { useState } from "react";
+// import { Link, Navigate, useNavigate } from "react-router-dom";
+// import { AlertCircle, Home } from "lucide-react";
+// import { useAdminAuth } from "../../lib/AdminAuthContext";
+// import { usePageMeta } from "../../lib/usePageMeta";
+// import loginBg from "../../../public/Bidii_Credit_Logo.png";
+
+// export default function AdminLogin() {
+//   usePageMeta("Admin Login");
+//   const { isAuthenticated, login } = useAdminAuth();
+//   const navigate = useNavigate();
+
+//   const [username, setUsername] = useState("");
+//   const [password, setPassword] = useState("");
+//   const [error, setError] = useState<string | null>(null);
+//   const [isSubmitting, setIsSubmitting] = useState(false);
+
+//   if (isAuthenticated) {
+//     return <Navigate to="/admin" replace />;
+//   }
+
+//   async function onSubmit(e: React.FormEvent) {
+//     e.preventDefault();
+//     setError(null);
+//     setIsSubmitting(true);
+//     try {
+//       await login(username, password);
+//       navigate("/admin", { replace: true });
+//     } catch {
+//       setError("Invalid username or password.");
+//     } finally {
+//       setIsSubmitting(false);
+//     }
+//   }
+
+//   return (
+//     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-5">
+//       <img
+//         src={loginBg}
+//         alt=""
+//         aria-hidden="true"
+//         className="absolute inset-0 h-full w-full scale-110 object-cover blur-md"
+//       />
+//       <div
+//         className="absolute inset-0"
+//         style={{
+//           background:
+//             "radial-gradient(ellipse 90% 60% at 20% 0%, var(--color-navy-700) 0%, var(--color-navy-900) 45%, var(--color-navy-950) 100%)",
+//           opacity: 0.85,
+//         }}
+//       />
+
+//       <div className="relative w-full max-w-sm rounded-3xl bg-surface p-8 shadow-2xl">
+//         <h1 className="font-display text-xl font-extrabold" style={{ color: "var(--color-ink-900)" }}>
+//           Bidii<span style={{ color: "var(--color-ember-500)" }}>Credit</span>
+//         </h1>
+//         <p className="mt-1 text-sm text-ink-500">Sign in to view submissions and site activity.</p>
+
+//         {error && (
+//           <div className="mt-5 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm text-red-600">
+//             <AlertCircle size={16} className="mt-0.5 shrink-0" />
+//             {error}
+//           </div>
+//         )}
+
+//         <form onSubmit={onSubmit} className="mt-6 space-y-4">
+//           <div>
+//             <label className="mb-1.5 block text-sm text-ink-500">Username</label>
+//             <input
+//               value={username}
+//               onChange={(e) => setUsername(e.target.value)}
+//               autoComplete="username"
+//               required
+//               className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm focus:outline-none"
+//             />
+//           </div>
+//           <div>
+//             <label className="mb-1.5 block text-sm text-ink-500">Password</label>
+//             <input
+//               type="password"
+//               value={password}
+//               onChange={(e) => setPassword(e.target.value)}
+//               autoComplete="current-password"
+//               required
+//               className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm focus:outline-none"
+//             />
+//           </div>
+//           <button
+//             type="submit"
+//             disabled={isSubmitting}
+//             className="w-full rounded-full py-3 text-sm font-semibold text-white transition-transform hover:scale-[1.01] disabled:opacity-60"
+//             style={{ backgroundColor: "var(--color-ember-500)" }}
+//           >
+//             {isSubmitting ? "Signing in…" : "Sign In"}
+//           </button>
+//           <div className="flex items-center justify-center ">
+//           <Link
+//             to="/"
+//             className="inline-flex items-center gap-1.5 text-sm font-medium text-orange-500 transition-colors hover:text-orange-400 hover:underline"
+//           >
+//             <Home size={14} />
+//             Back to site
+//           </Link>
+//           </div>
+//         </form>
+//       </div>
+//     </div>
+//   );
+// }
