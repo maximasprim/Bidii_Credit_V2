@@ -1,14 +1,6 @@
-/**
- * Talks to the WhatsApp CRM's public lead-capture endpoint
- * (POST /api/v1/public/leads) — a separate system from the site's own
- * backend (see lib/api.ts). This is intentionally best-effort: a visitor's
- * primary action (submitting the contact form, applying for a loan,
- * accepting the "can we reach out?" prompt) must never fail or feel slow
- * because the CRM is unreachable, so every call here swallows its own
- * errors and never throws.
- */
 
 const CRM_API_URL = import.meta.env.VITE_CRM_API_URL as string | undefined;
+const CRM_TENANT_SLUG = import.meta.env.VITE_CRM_TENANT_SLUG as string | undefined;
 
 export type LeadSourcePage = "calculator" | "contact" | "apply";
 
@@ -23,7 +15,7 @@ export interface SubmitLeadInput {
   fullName: string;
   phone: string;
   email?: string;
-  sourcePage: LeadSourcePage;
+  sourcePage: LeadSourcePage
   trigger: LeadTrigger;
   productInterest?: string;
   message?: string;
@@ -37,7 +29,7 @@ export interface SubmitLeadInput {
  * silently alongside another action (Contact/Apply submit) can ignore it.
  */
 export async function submitCrmLead(input: SubmitLeadInput): Promise<boolean> {
-  if (!CRM_API_URL) {
+  if (!CRM_API_URL || !CRM_TENANT_SLUG) {
     // CRM integration isn't configured for this environment - no-op rather
     // than breaking the site.
     return false;
@@ -46,7 +38,9 @@ export async function submitCrmLead(input: SubmitLeadInput): Promise<boolean> {
   try {
     const response = await fetch(`${CRM_API_URL}/api/public/leads`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json",
+        ...(CRM_TENANT_SLUG ? { "X-Tenant-Slug": CRM_TENANT_SLUG } : {}),
+       },
       body: JSON.stringify({
         full_name: input.fullName,
         phone: input.phone,
