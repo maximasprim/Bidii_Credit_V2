@@ -26,6 +26,37 @@ function actionLabel(action: string) {
   return action.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 }
 
+/** For "screened" entries, surfaces which engine actually ran — pulled from
+ *  the same `details` the backend already logs (evaluation_method, provider,
+ *  model, manual_override, cv_text_used). Other action types get a short,
+ *  relevant note where one applies (e.g. an AI failure falling back). */
+function methodLabel(h: { action: string; details: Record<string, unknown> }): string | null {
+  const d = h.details;
+  if (h.action === "screened") {
+    const method = d.evaluation_method as string | undefined;
+    const override = d.manual_override ? " · manual override" : "";
+    if (method === "ai") {
+      const provider = d.provider as string | undefined;
+      const model = d.model as string | undefined;
+      const providerBit = provider ? ` - ${provider}${model ? ` (${model})` : ""}` : "";
+      return `AI Evaluation${providerBit}${override}`;
+    }
+    if (method === "weighted") {
+      const cvNote = d.cv_text_used === false ? " · CV text unavailable, cover note & role only" : "";
+      return `Weighted Scoring${cvNote}${override}`;
+    }
+    return null;
+  }
+  if (h.action === "ai_fallback_to_weighted") {
+    return "AI evaluation failed, fell back to Weighted Scoring";
+  }
+  if (h.action === "ai_evaluation_failed") {
+    const provider = d.provider as string | undefined;
+    return `AI Evaluation failed${provider ? ` (${provider})` : ""}`;
+  }
+  return null;
+}
+
 export default function AdminATSCandidate() {
   const { applicationId } = useParams<{ applicationId: string }>();
   usePageMeta("Candidate Vetting");
@@ -311,7 +342,7 @@ export default function AdminATSCandidate() {
                   required
                   value={overrideReason}
                   onChange={(e) => setOverrideReason(e.target.value)}
-                  placeholder="Reason for this override — visible in the audit trail."
+                  placeholder="Reason for this override - visible in the audit trail."
                   rows={2}
                   className="rounded-lg border border-mist-200 px-3 py-2 text-sm text-ink-700"
                 />
@@ -367,9 +398,18 @@ export default function AdminATSCandidate() {
             <p className="text-sm text-ink-500">No activity yet.</p>
           ) : (
             <ol className="flex flex-col gap-4">
+              {/* {history.map((h) => (
+                <li key={h.id} className="border-l-2 pl-3" style={{ borderColor: "var(--color-mist-200)" }}>
+                  <p className="text-sm font-semibold" style={{ color: "var(--color-ink-900)" }}>{actionLabel(h.action)}</p>
+                  <p className="text-xs text-ink-500">{h.admin_username ?? "System"} · {fmtDate(h.created_at)}</p>
+                </li>
+              ))} */}
               {history.map((h) => (
                 <li key={h.id} className="border-l-2 pl-3" style={{ borderColor: "var(--color-mist-200)" }}>
                   <p className="text-sm font-semibold" style={{ color: "var(--color-ink-900)" }}>{actionLabel(h.action)}</p>
+                  {methodLabel(h) && (
+                    <p className="text-xs" style={{ color: "var(--color-ember-600)" }}>{methodLabel(h)}</p>
+                  )}
                   <p className="text-xs text-ink-500">{h.admin_username ?? "System"} · {fmtDate(h.created_at)}</p>
                 </li>
               ))}
