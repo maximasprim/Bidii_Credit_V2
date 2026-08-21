@@ -37,6 +37,7 @@ export default function AdminCareerApplications() {
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [selectedCoverLetter, setSelectedCoverLetter] = useState<CareerApplication | null>(null);
 
   const qs = new URLSearchParams({ page: String(page), page_size: "10" });
   if (statusFilter) qs.set("status", statusFilter);
@@ -150,7 +151,16 @@ export default function AdminCareerApplications() {
                     <p className="text-xs text-ink-500">{c.email}</p>
                   </td>
                   <td className="px-4 py-3">{c.role}</td>
-                  <td className="max-w-xs px-4 py-3 text-ink-700">{c.cover_note}</td>
+                  {/* <td className="max-w-xs px-4 py-3 text-ink-700">{c.cover_note}</td> */}
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => setSelectedCoverLetter(c)}
+                      className="text-xs font-semibold hover:underline"
+                      style={{ color: "var(--color-ember-500)" }}
+                    >
+                      View Cover Letter
+                    </button>
+                  </td>
                   <td className="px-4 py-3">
                     <button
                       onClick={() => downloadCv(c)}
@@ -178,6 +188,45 @@ export default function AdminCareerApplications() {
           </table>
         )}
       </div>
+      {selectedCoverLetter && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setSelectedCoverLetter(null)}
+        >
+          <div
+            className="w-full max-w-3xl rounded-2xl bg-surface shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-mist-200 px-5 py-4">
+              <div>
+                <h2
+                  className="text-base font-semibold"
+                  style={{ color: "var(--color-ink-900)" }}
+                >
+                  Cover Letter
+                </h2>
+                <p className="mt-0.5 text-xs text-ink-500">
+                  {selectedCoverLetter.full_name} · {selectedCoverLetter.role}
+                </p>
+              </div>
+
+              <button
+                onClick={() => setSelectedCoverLetter(null)}
+                className="rounded-lg p-2 text-ink-500 hover:bg-mist-100 hover:text-ink-700"
+                aria-label="Close cover letter"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="max-h-[70vh] overflow-y-auto px-5 py-5">
+              <div className="whitespace-pre-wrap text-sm leading-6 text-ink-700">
+                {selectedCoverLetter.cover_note}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {meta && <Pagination meta={meta} onPageChange={setPage} />}
     </div>

@@ -1,4 +1,8 @@
 import Wandeto from "../assets/wandeto.jpg";
+import Imab from "../assets/Imab-Alpha-300x163.png";
+import Spinmobile from "../assets/spinmobile-logo-white-tagline.png";
+import Metropol from "../assets/metropol-300x108.png";
+// import Mookh from "../assets/mookh-300x89.png";
 
 export type RepaymentFrequency = "weekly" | "monthly";
 export type InterestBasis = "flat_over_term" | "per_month";
@@ -404,10 +408,10 @@ export const coreValues = [
 ];
 
 export const timeline = [
-  { year: "2012", event: "Founded in Nairobi as a small business lending circle serving Moi Avenue traders." },
-  { year: "2015", event: "Licensed as a microfinance institution and opened branches in Kisumu and Mombasa." },
-  { year: "2019", event: "Introduced asset finance and logbook loans to serve boda boda and SME operators." },
-  { year: "2023", event: "Crossed KES 4 billion disbursed and expanded to 14 branches nationwide." },
+  { year: "2018", event: "Founded in Nairobi as a small business lending circle serving Moi Avenue traders." },
+  { year: "2020", event: "Licensed as a microfinance institution and opened branches in Kisumu and Mombasa." },
+  { year: "2023", event: "Introduced asset finance and logbook loans to serve boda boda and SME operators." },
+  { year: "2025", event: "Total customer base crossed 4,000 baseline." },
 ];
 
 export const leadership = [
@@ -575,13 +579,13 @@ export const articles: Article[] = [
 
 export const downloads: DownloadItem[] = [
   { title: "SME Loan Application Pack", category: "Application Forms", fileType: "DOCX", size: "878 KB", description: "Full documentation pack for registered SME facilities, including financial statement templates.", url: "/Downloads/SME Loan Form 2026.pdf" },
-  { title: "CheckOff Loan Application Form", category: "Application Forms", fileType: "PDF", size: "355 KB", description: "The standard form for Government and Non-government Employees loan applications.", url: "/Downloads/BIDII LAF.pdf" },
-  { title: "Rental Income Loan Application Form", category: "Application Forms", fileType: "PDF", size: "878 KB", description: "Application form for financing landlords and property owners.", url: "/Downloads/SME Loan Form 2026.pdf" },
+  // { title: "CheckOff Loan Application Form", category: "Application Forms", fileType: "PDF", size: "355 KB", description: "The standard form for Government and Non-government Employees loan applications.", url: "/Downloads/BIDII LAF.pdf" },
+  // { title: "Rental Income Loan Application Form", category: "Application Forms", fileType: "PDF", size: "878 KB", description: "Application form for financing landlords and property owners.", url: "/Downloads/SME Loan Form 2026.pdf" },
   // { title: "Salary Advance Consent Form", category: "Application Forms", fileType: "PDF", size: "120 KB", description: "Payroll verification consent required for salary advance applications." },
   { title: "Business Loans Brochure", category: "Product Brochures", fileType: "PDF", size: "272 KB", description: "Rates, terms, and eligibility overview for the Business Loans product.", url: "/Downloads/Business Loans Brochures.pdf" },
   // { title: "Asset Finance Brochure", category: "Product Brochures", fileType: "PDF", size: "980 KB", description: "How asset financing works, from valuation to ownership transfer.", url: "/Downloads/SME Loan Form 2026.pdf" },
-  { title: "Logbook Loan Application Form", category: "Application Forms", fileType: "PDF", size: "878 KB", description: "The Standard Application Form for Logbook Loans.", url: "/Downloads/SME Loan Form 2026.pdf" },
-  { title: "Sample Repayment Schedule", category: "Statements & Guides", fileType: "PDF", size: "150 KB", description: "An example month-by-month repayment schedule for a 12-month business loan.", url: "/Downloads/SME Loan Form 2026.pdf" },
+  // { title: "Logbook Loan Application Form", category: "Application Forms", fileType: "PDF", size: "878 KB", description: "The Standard Application Form for Logbook Loans.", url: "/Downloads/SME Loan Form 2026.pdf" },
+  // { title: "Sample Repayment Schedule", category: "Statements & Guides", fileType: "PDF", size: "150 KB", description: "An example month-by-month repayment schedule for a 12-month business loan.", url: "/Downloads/SME Loan Form 2026.pdf" },
   { title: "First-Time Borrower's Guide", category: "Statements & Guides", fileType: "PDF", size: "620 KB", description: "A short guide to preparing documents and understanding your offer before you apply.", url: "/Downloads/SME Loan Form 2026.pdf" },
   { title: "Terms and Conditions", category: "Legal & Compliance", fileType: "PDF", size: "410 KB", description: "Standard terms and conditions governing all Bidii Credit loan products.", url: "/Downloads/SME Loan Form 2026.pdf" },
   // { title: "Data Privacy Policy", category: "Legal & Compliance", fileType: "PDF", size: "280 KB", description: "How customer data is collected, used, and protected." },
@@ -596,6 +600,18 @@ export type JobOpening = {
   type: "Full-time" | "Contract";
   description: string;
 };
+
+export type Partner = {
+  name: string;
+  logo: string;
+};
+
+export const partners: Partner[] = [
+  { name: "IMAB", logo: Imab },
+  { name: "Spinmobile", logo: Spinmobile },
+  { name: "Metropol", logo: Metropol },
+  // { name: "Mookh", logo: Mookh },
+];
 
 export const jobOpenings: JobOpening[] = [
   {

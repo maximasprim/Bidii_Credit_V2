@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import PageHero from "../components/ui/PageHero";
 import CTABand from "../components/home/CTABand";
 import { usePageMeta } from "../lib/usePageMeta";
-import { coreValues, timeline, leadership } from "../data/content";
+import { coreValues, timeline, partners } from "../data/content";
 
 export default function About() {
   usePageMeta("About Us");
@@ -89,7 +89,7 @@ export default function About() {
         </div>
       </section>
 
-      <section className="py-16" style={{ backgroundColor: "var(--color-mist-100)" }}>
+      {/* <section className="py-16" style={{ backgroundColor: "var(--color-mist-100)" }}>
         <div className="mx-auto max-w-6xl px-5 lg:px-8">
           <h2 className="mb-10 text-center font-display text-2xl font-extrabold sm:text-3xl" style={{ color: "var(--color-ink-900)" }}>
             Leadership team
@@ -116,6 +116,31 @@ export default function About() {
                 </p>
                 <p className="mt-1 text-xs text-ink-500">{l.role}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section> */}
+      <section className="py-16" style={{ backgroundColor: "var(--color-mist-100)" }}>
+        <div className="mx-auto max-w-6xl px-5 lg:px-8">
+          <h2 className="mb-10 text-center font-display text-2xl font-extrabold sm:text-3xl" style={{ color: "var(--color-ink-900)" }}>
+            Our Partners
+          </h2>
+          <div className="grid gap-5 sm:grid-cols-3 lg:grid-cols-3">
+            {partners.map((p, i) => (
+              <motion.div
+                key={p.name}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.4 }}
+                transition={{ duration: 0.45, delay: i * 0.08 }}
+                className="flex h-28 items-center justify-center rounded-2xl bg-transparent p-6"
+              >
+                <img
+                  src={p.logo}
+                  alt={p.name}
+                  className="max-h-12 w-auto object-contain"
+                />
+              </motion.div>
             ))}
           </div>
         </div>

@@ -26,7 +26,7 @@ const reasons = [
 
 export default function WhyChooseBidii() {
   return (
-    <section className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
+    <section className="mx-auto max-w-7xl px-5 py-10 lg:px-8 lg:py-12">
       <div className="mx-auto mb-14 max-w-2xl text-center">
         <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--color-ember-500)" }}>
           Why Bidii

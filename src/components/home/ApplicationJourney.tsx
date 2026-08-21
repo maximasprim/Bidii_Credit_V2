@@ -3,7 +3,7 @@ import { applicationSteps } from "../../data/content";
 
 export default function ApplicationJourney() {
   return (
-    <section className="py-20 lg:py-28" style={{ backgroundColor: "var(--color-navy-950)" }}>
+    <section className="py-10 lg:py-12" style={{ backgroundColor: "var(--color-navy-950)" }}>
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
         <div className="mx-auto mb-16 max-w-2xl text-center">
           <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--color-ember-400)" }}>

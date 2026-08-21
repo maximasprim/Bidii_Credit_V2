@@ -13,6 +13,7 @@ import {
   BadgeDollarSign,
   Menu,
   X,
+  ClipboardCheck,
 } from "lucide-react";
 import { useAdminAuth } from "../../lib/AdminAuthContext";
 import { useTheme } from "../../lib/useTheme";
@@ -23,10 +24,11 @@ const tabs = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard, end: true },
   { to: "/admin/contacts", label: "Contact Messages", icon: Mail },
   { to: "/admin/loan-applications", label: "Loan Applications", icon: Landmark },
+  { to: "/admin/jobs", label: "Job Listings", icon: Briefcase },
+  { to: "/admin/ats", label: "Candidate Screening", icon: ClipboardCheck },
   { to: "/admin/career-applications", label: "Career Applications", icon: Briefcase },
-  { to: "/admin/news", label: "News", icon: Newspaper },
-  { to: "/admin/jobs", label: "Jobs", icon: Briefcase },
-  { to: "/admin/loan-terms", label: "Loan Terms", icon: BadgeDollarSign },
+  { to: "/admin/news", label: "News Articles", icon: Newspaper },
+  { to: "/admin/loan-terms", label: "Loan Products", icon: BadgeDollarSign },
   { to: "/admin/users", label: "Admin Users", icon: Users },
 ];
 

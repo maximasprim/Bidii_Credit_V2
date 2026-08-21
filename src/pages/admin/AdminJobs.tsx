@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { AlertCircle, Pencil, Trash2, Check, X, Plus, Users } from "lucide-react";
+import { AlertCircle, Pencil, Trash2, Check, X, Plus, Users, Sparkles } from "lucide-react";
 import { adminGet, adminPost, adminPatch, adminDelete } from "../../lib/adminApi";
 import { usePageMeta } from "../../lib/usePageMeta";
 import StatusBadge from "../../components/admin/StatusBadge";
+import { generateJobDraft } from "../../lib/aiJobApi";
+import { getAIProviderStatus, type ATSAIProviderName, type ATSAIProviderStatus } from "../../lib/atsApi";
 
 type Job = {
   id: string;
@@ -27,7 +29,7 @@ type FormState = {
   location: string;
   type: string;
   description: string;
-  // One requirement/responsibility per line in these textareas — converted
+  // One requirement/responsibility per line in these textareas - converted
   // to/from string[] via linesToList/listToLines around the API calls.
   requirementsText: string;
   responsibilitiesText: string;
@@ -75,6 +77,17 @@ export default function AdminJobs() {
   const [editError, setEditError] = useState<string | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
 
+  const [providerStatus, setProviderStatus] = useState<Record<ATSAIProviderName, ATSAIProviderStatus> | null>(null);
+  const [generateProvider, setGenerateProvider] = useState<ATSAIProviderName>("gemini");
+  const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getAIProviderStatus()
+      .then((data) => setProviderStatus(data.providers))
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     adminGet<{ items: Job[] }>("/api/admin/jobs")
@@ -96,6 +109,31 @@ export default function AdminJobs() {
 
   function reload() {
     setReloadTrigger((n) => n + 1);
+  }
+
+  async function generateWithAI() {
+    if (!createForm.title.trim()) {
+      setGenerateError("Enter a job title first, then click Generate with AI.");
+      return;
+    }
+    setGenerateError(null);
+    setGenerating(true);
+    try {
+      const { data: draft } = await generateJobDraft(createForm.title.trim(), generateProvider);
+      // Populates the normal create-job form fields - nothing is saved yet.
+      // The admin can freely edit, remove, or add to any of this before
+      // clicking "Create Posting", exactly like a manually-typed draft.
+      setCreateForm({
+        ...createForm,
+        description: draft.summary ? `${draft.summary}\n\n${draft.description}` : draft.description,
+        requirementsText: draft.requirements.join("\n"),
+        responsibilitiesText: draft.responsibilities.join("\n"),
+      });
+    } catch (err) {
+      setGenerateError(err instanceof Error ? err.message : "Couldn't generate a draft.");
+    } finally {
+      setGenerating(false);
+    }
   }
 
   async function onCreate(e: React.FormEvent) {
@@ -163,7 +201,7 @@ export default function AdminJobs() {
 
   async function onDelete(job: Job) {
     if (job.application_count > 0) {
-      alert(`Can't delete — ${job.application_count} application(s) are on file for this posting. Close it instead.`);
+      alert(`Can't delete - ${job.application_count} application(s) are on file for this posting. Close it instead.`);
       return;
     }
     if (!confirm("Delete this job posting? This can't be undone.")) return;
@@ -185,6 +223,34 @@ export default function AdminJobs() {
           <div className="mb-4 flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm text-red-600">
             <AlertCircle size={16} />
             {createError}
+          </div>
+        )}
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-mist-200 bg-mist-50 p-3">
+          <Sparkles size={15} style={{ color: "var(--color-ember-500)" }} />
+          <span className="text-xs text-ink-700">Enter a title above, then generate a draft description, responsibilities, and requirements:</span>
+          <select
+            value={generateProvider}
+            onChange={(e) => setGenerateProvider(e.target.value as ATSAIProviderName)}
+            className="rounded-lg border border-mist-200 bg-surface px-2 py-1.5 text-xs text-ink-700 focus:outline-none"
+          >
+            <option value="gemini">Gemini {providerStatus && !providerStatus.gemini.configured ? "(No key Set)" : ""}</option>
+            <option value="openai">OpenAI {providerStatus && !providerStatus.openai.configured ? "(No key Set)" : ""}</option>
+          </select>
+          <button
+            type="button"
+            onClick={generateWithAI}
+            disabled={generating}
+            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+            style={{ backgroundColor: "var(--color-ember-500)" }}
+          >
+            <Sparkles size={12} />
+            {generating ? "Generating…" : "Generate with AI"}
+          </button>
+        </div>
+        {generateError && (
+          <div className="mb-4 flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm text-red-600">
+            <AlertCircle size={16} />
+            {generateError}
           </div>
         )}
         <form onSubmit={onCreate} className="space-y-4">
@@ -229,7 +295,7 @@ export default function AdminJobs() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-500">
-                Requirements — one per line (shown as a numbered list to applicants)
+                Requirements - one per line (shown as a numbered list to applicants)
               </label>
               <textarea
                 value={createForm.requirementsText}
@@ -241,7 +307,7 @@ export default function AdminJobs() {
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-500">
-                Responsibilities — one per line (shown as a numbered list to applicants)
+                Responsibilities - one per line (shown as a numbered list to applicants)
               </label>
               <textarea
                 value={createForm.responsibilitiesText}
@@ -337,7 +403,7 @@ export default function AdminJobs() {
                       />
                       <div className="grid gap-3 sm:grid-cols-2">
                         <div>
-                          <label className="mb-1 block text-xs font-medium text-ink-500">Requirements — one per line</label>
+                          <label className="mb-1 block text-xs font-medium text-ink-500">Requirements - one per line</label>
                           <textarea
                             value={editForm.requirementsText}
                             onChange={(e) => setEditForm({ ...editForm, requirementsText: e.target.value })}
@@ -346,7 +412,7 @@ export default function AdminJobs() {
                           />
                         </div>
                         <div>
-                          <label className="mb-1 block text-xs font-medium text-ink-500">Responsibilities — one per line</label>
+                          <label className="mb-1 block text-xs font-medium text-ink-500">Responsibilities - one per line</label>
                           <textarea
                             value={editForm.responsibilitiesText}
                             onChange={(e) => setEditForm({ ...editForm, responsibilitiesText: e.target.value })}
@@ -404,7 +470,7 @@ export default function AdminJobs() {
                           style={{ color: "var(--color-ember-500)" }}
                         >
                           <Users size={13} />
-                          {job.application_count} application{job.application_count === 1 ? "" : "s"} — view &amp; vet
+                          {job.application_count} application{job.application_count === 1 ? "" : "s"} - view applications
                         </Link>
                       </div>
                       <div className="flex shrink-0 gap-2">
@@ -567,7 +633,7 @@ export default function AdminJobs() {
 
 //   async function onDelete(job: Job) {
 //     if (job.application_count > 0) {
-//       alert(`Can't delete — ${job.application_count} application(s) are on file for this posting. Close it instead.`);
+//       alert(`Can't delete - ${job.application_count} application(s) are on file for this posting. Close it instead.`);
 //       return;
 //     }
 //     if (!confirm("Delete this job posting? This can't be undone.")) return;
@@ -757,7 +823,7 @@ export default function AdminJobs() {
 //                           style={{ color: "var(--color-ember-500)" }}
 //                         >
 //                           <Users size={13} />
-//                           {job.application_count} application{job.application_count === 1 ? "" : "s"} — view &amp; vet
+//                           {job.application_count} application{job.application_count === 1 ? "" : "s"} - view &amp; vet
 //                         </Link>
 //                       </div>
 //                       <div className="flex shrink-0 gap-2">

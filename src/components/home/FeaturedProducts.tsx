@@ -5,7 +5,7 @@ import { loanProducts } from "../../data/content";
 
 export default function FeaturedProducts() {
   return (
-    <section className="py-20" style={{ backgroundColor: "var(--color-mist-100)" }}>
+    <section className="py-10" style={{ backgroundColor: "var(--color-mist-100)" }}>
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
         <div className="mb-14 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>

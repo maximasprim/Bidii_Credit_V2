@@ -5,8 +5,8 @@ import FeaturedProducts from "../components/home/FeaturedProducts";
 import LoanCalculatorPreview from "../components/home/LoanCalculatorPreview";
 import ApplicationJourney from "../components/home/ApplicationJourney";
 import Testimonials from "../components/home/Testimonials";
-import BranchesPreview from "../components/home/BranchesPreview";
-import FAQSection from "../components/home/FAQSection";
+// import BranchesPreview from "../components/home/BranchesPreview";
+// import FAQSection from "../components/home/FAQSection";
 import CTABand from "../components/home/CTABand";
 import { usePageMeta } from "../lib/usePageMeta";
 
@@ -21,8 +21,8 @@ export default function Home() {
       <LoanCalculatorPreview />
       <ApplicationJourney />
       <Testimonials />
-      <BranchesPreview />
-      <FAQSection />
+      {/* <BranchesPreview /> */}
+      {/* <FAQSection /> */}
       <CTABand />
     </>
   );

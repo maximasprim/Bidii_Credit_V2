@@ -4,7 +4,7 @@ import GrowthLine from "../ui/GrowthLine";
 
 export default function CTABand() {
   return (
-    <div className="mx-auto max-w-7xl px-5 pb-20 lg:px-8">
+    <div className="mx-auto max-w-7xl px-5 pb-12 lg:px-8">
       <section
         className="relative overflow-hidden rounded-3xl px-6 py-16 text-center sm:px-8 lg:py-20"
         style={{

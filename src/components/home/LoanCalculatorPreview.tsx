@@ -31,7 +31,7 @@ export default function LoanCalculatorPreview() {
   }, [amount, weeks]);
 
   return (
-    <section className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
+    <section className="mx-auto max-w-7xl px-5 py-10 lg:px-8 lg:py-12">
       <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--color-ember-500)" }}>

@@ -8,7 +8,7 @@ export default function FAQSection() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section className="mx-auto max-w-4xl px-5 py-20 lg:py-28">
+    <section className="mx-auto max-w-4xl px-5 py-10 lg:py-12">
       <div className="mb-12 text-center">
         <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--color-ember-500)" }}>
           FAQs
