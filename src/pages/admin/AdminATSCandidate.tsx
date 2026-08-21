@@ -250,7 +250,7 @@ export default function AdminATSCandidate() {
                         onClick={() => runScreen("weighted")}
                         disabled={screening !== null}
                         title="Score this candidate with Weighted Scoring instead, without changing the job's default method"
-                        className="text-xs font-semibold text-ink-500 underline decoration-dotted disabled:opacity-50"
+                        className="text-xs font-semibold text-red-500 underline decoration-dotted disabled:opacity-50"
                       >
                         {screening === "weighted" ? "Screening…" : "Try Weighted Scoring instead"}
                       </button>
