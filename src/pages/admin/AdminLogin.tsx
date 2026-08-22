@@ -48,7 +48,7 @@ export default function AdminLogin() {
         src={loginBg}
         alt=""
         aria-hidden="true"
-        className="absolute inset-0 h-full w-full scale-110 object-cover blur-md"
+        className="absolute inset-0 h-full w-full scale-110 object-cover blur-xs"
       />
       <div
         className="absolute inset-0"
