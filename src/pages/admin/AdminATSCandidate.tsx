@@ -26,7 +26,7 @@ function actionLabel(action: string) {
   return action.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 }
 
-/** For "screened" entries, surfaces which engine actually ran — pulled from
+/** For "screened" entries, surfaces which engine actually ran - pulled from
  *  the same `details` the backend already logs (evaluation_method, provider,
  *  model, manual_override, cv_text_used). Other action types get a short,
  *  relevant note where one applies (e.g. an AI failure falling back). */

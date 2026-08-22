@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, Pencil, Trash2, RotateCcw, Check, X } from "lucide-react";
+import { AlertCircle, Pencil, Trash2, RotateCcw, Check, X, Eye, EyeOff } from "lucide-react";
 import { adminGet, adminPost, adminPatch, adminDelete, getCurrentAdminId } from "../../lib/adminApi";
 import { usePageMeta } from "../../lib/usePageMeta";
 import StatusBadge from "../../components/admin/StatusBadge";
-
-type AdminRole = "admin" | "loan_officer";
+import { ADMIN_ROLES, roleLabel, type AdminRole } from "../../lib/roleAccess";
 
 type AdminUser = {
   id: string;
@@ -18,10 +17,6 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-KE", { dateStyle: "medium" });
 }
 
-function roleLabel(role: AdminRole) {
-  return role === "loan_officer" ? "Loan Officer" : "Admin";
-}
-
 export default function AdminUsers() {
   usePageMeta("Admin Users");
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -33,6 +28,7 @@ export default function AdminUsers() {
 
   const [newUsername, setNewUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [newRole, setNewRole] = useState<AdminRole>("admin");
   const [createError, setCreateError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -40,6 +36,7 @@ export default function AdminUsers() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editUsername, setEditUsername] = useState("");
   const [editPassword, setEditPassword] = useState("");
+  const [showEditPassword, setShowEditPassword] = useState(false);
   const [editRole, setEditRole] = useState<AdminRole>("admin");
   const [editError, setEditError] = useState<string | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
@@ -153,14 +150,33 @@ export default function AdminUsers() {
           </div>
           <div className="min-w-[160px] flex-1">
             <label className="mb-1.5 block text-sm text-ink-500">Password</label>
-            <input
+            {/* <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               minLength={8}
               required
               className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm focus:outline-none"
-            />
+            /> */}
+            <div className="relative">
+              <input
+                type={showNewPassword ? "text" : "password"}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                minLength={8}
+                required
+                className="w-full rounded-xl border border-mist-200 px-4 py-2.5 pr-10 text-sm focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword((v) => !v)}
+                tabIndex={-1}
+                aria-label={showNewPassword ? "Hide password" : "Show password"}
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-ink-500 hover:text-ink-700"
+              >
+                {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
           <div className="min-w-[160px]">
             <label className="mb-1.5 block text-sm text-ink-500">Role</label>
@@ -169,8 +185,9 @@ export default function AdminUsers() {
               onChange={(e) => setNewRole(e.target.value as AdminRole)}
               className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm focus:outline-none"
             >
-              <option value="admin">Admin</option>
-              <option value="loan_officer">Loan Officer</option>
+              {ADMIN_ROLES.map((r) => (
+                <option key={r.value} value={r.value}>{r.label}</option>
+              ))}
             </select>
           </div>
           <button
@@ -225,20 +242,39 @@ export default function AdminUsers() {
                               className="mb-1.5 w-full rounded-lg border border-mist-200 px-3 py-1.5 text-sm focus:outline-none"
                               placeholder="Username"
                             />
-                            <input
+                            {/* <input
                               type="password"
                               value={editPassword}
                               onChange={(e) => setEditPassword(e.target.value)}
                               className="mb-1.5 w-full rounded-lg border border-mist-200 px-3 py-1.5 text-sm focus:outline-none"
                               placeholder="New password (leave blank to keep current)"
-                            />
+                            /> */}
+                            <div className="relative mb-1.5">
+                              <input
+                                type={showEditPassword ? "text" : "password"}
+                                value={editPassword}
+                                onChange={(e) => setEditPassword(e.target.value)}
+                                className="w-full rounded-lg border border-mist-200 px-3 py-1.5 pr-9 text-sm focus:outline-none"
+                                placeholder="New password (leave blank to keep current)"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowEditPassword((v) => !v)}
+                                tabIndex={-1}
+                                aria-label={showEditPassword ? "Hide password" : "Show password"}
+                                className="absolute inset-y-0 right-0 flex items-center px-2.5 text-ink-500 hover:text-ink-700"
+                              >
+                                {showEditPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                              </button>
+                            </div>
                             <select
                               value={editRole}
                               onChange={(e) => setEditRole(e.target.value as AdminRole)}
                               className="w-full rounded-lg border border-mist-200 px-3 py-1.5 text-sm focus:outline-none"
                             >
-                              <option value="admin">Admin</option>
-                              <option value="loan_officer">Loan Officer</option>
+                              {ADMIN_ROLES.map((r) => (
+                                <option key={r.value} value={r.value}>{r.label}</option>
+                              ))}
                             </select>
                             {editError && <p className="mt-1 text-xs text-red-500">{editError}</p>}
                           </td>

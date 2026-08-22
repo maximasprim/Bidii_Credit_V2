@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, NavLink, Outlet } from "react-router-dom";
+import { Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Mail,
@@ -14,10 +14,12 @@ import {
   Menu,
   X,
   ClipboardCheck,
+  ShieldCheck,
 } from "lucide-react";
 import { useAdminAuth } from "../../lib/AdminAuthContext";
 import { useTheme } from "../../lib/useTheme";
 import { cn } from "../../lib/utils";
+import { pathAllowed, resolveAllowedMenus } from "../../lib/roleAccess";
 import logo from "../../../public/Bidii-logo.png";
 
 const tabs = [
@@ -30,16 +32,29 @@ const tabs = [
   { to: "/admin/news", label: "News Articles", icon: Newspaper },
   { to: "/admin/loan-terms", label: "Loan Products", icon: BadgeDollarSign },
   { to: "/admin/users", label: "Admin Users", icon: Users },
+  { to: "/admin/role-permissions", label: "Roles & Permissions", icon: ShieldCheck },
 ];
 
 export default function AdminLayout() {
-  const { isAuthenticated, logout } = useAdminAuth();
+  const { isAuthenticated, role, allowedMenus: fetchedAllowedMenus, logout } = useAdminAuth();
   const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
 
   if (!isAuthenticated) {
     return <Navigate to="/admin/login" replace />;
   }
+
+  const allowedMenus = resolveAllowedMenus(role, fetchedAllowedMenus);
+
+  // Only enforced once we confidently know the role (see resolveAllowedMenus)
+  // — if the role can't be read for any reason, this is skipped rather than
+  // risking a redirect loop or locking someone out on a technicality.
+  if (role && !pathAllowed(allowedMenus, location.pathname)) {
+    return <Navigate to="/admin" replace />;
+  }
+
+  const visibleTabs = tabs.filter((tab) => pathAllowed(allowedMenus, tab.to));
 
   return (
     <div className="flex h-screen flex-col overflow-hidden" style={{ backgroundColor: "var(--color-mist-50)" }}>
@@ -156,7 +171,7 @@ export default function AdminLayout() {
           </div>
 
           <nav className="flex flex-col gap-1">
-            {tabs.map((tab) => (
+            {visibleTabs.map((tab) => (
               <NavLink
                 key={tab.to}
                 to={tab.to}

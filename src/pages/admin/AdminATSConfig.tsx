@@ -182,7 +182,7 @@ export default function AdminATSConfig() {
       config?.ai_provider ??
       (providerStatus?.gemini?.configured ? "gemini" : providerStatus?.openai?.configured ? "openai" : null);
     if (!provider) {
-      setSuggestError("No AI provider is configured on the server yet — add an OpenAI or Gemini API key first.");
+      setSuggestError("No AI provider is configured on the server yet - add an OpenAI or Gemini API key first.");
       return;
     }
     setSuggestingCriteria(true);
@@ -221,7 +221,7 @@ export default function AdminATSConfig() {
       setSuggestedCriteria(null);
       load();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Couldn't add all criteria — some may have been added already.");
+      alert(err instanceof Error ? err.message : "Couldn't add all criteria - some may have been added already.");
       load();
     } finally {
       setAddingAllSuggested(false);
@@ -322,7 +322,7 @@ export default function AdminATSConfig() {
             </h2>
             <p className="mb-4 text-xs text-ink-500">
               Weighted Scoring matches keywords you configure below. AI Evaluation reads each candidate's cover note
-              and CV directly and judges fit against this job's posted requirements — no keywords needed. If AI
+              and CV directly and judges fit against this job's posted requirements - no keywords needed. If AI
               evaluation fails or isn't configured, screening automatically falls back to Weighted Scoring below.
             </p>
 
@@ -332,7 +332,7 @@ export default function AdminATSConfig() {
                   key={mode}
                   onClick={() => {
                     // Switching to "ai" needs a provider set in the same
-                    // request — the backend rejects evaluation_mode="ai"
+                    // request - the backend rejects evaluation_mode="ai"
                     // with no ai_provider, and the provider picker below
                     // only renders once evaluation_mode is already "ai",
                     // so without this the two conditions can never both
@@ -405,7 +405,7 @@ export default function AdminATSConfig() {
                 {config.ai_provider && providerStatus && !providerStatus[config.ai_provider].configured && (
                   <p className="text-xs sm:col-span-2" style={{ color: "var(--color-ember-600)" }}>
                     {config.ai_provider === "openai" ? "OpenAI" : "Gemini"} has no API key configured on the server yet
-                    — screening will automatically fall back to Weighted Scoring below until one is added to the
+                    - screening will automatically fall back to Weighted Scoring below until one is added to the
                     backend's .env and the server is restarted.
                   </p>
                 )}
@@ -425,7 +425,7 @@ export default function AdminATSConfig() {
                 <AlertCircle size={14} className="mt-0.5 shrink-0" />
                 <span>
                   This job is on AI Evaluation, and Screening Criteria is empty. If AI evaluation ever fails or the
-                  provider isn't configured, screening silently falls back to Weighted Scoring — with no criteria,
+                  provider isn't configured, screening silently falls back to Weighted Scoring - with no criteria,
                   every candidate would score 0%. Add a few criteria below as a safety net, or use "Suggest with AI"
                   to draft some in one click.
                 </span>
@@ -433,7 +433,7 @@ export default function AdminATSConfig() {
             )}
 
             {config.criteria.length === 0 ? (
-              <p className="mb-4 text-sm text-ink-500">No criteria configured yet — add at least one below.</p>
+              <p className="mb-4 text-sm text-ink-500">No criteria configured yet - add at least one below.</p>
             ) : (
               <div className="mb-5 flex flex-col gap-2">
                 {config.criteria.map((c) =>
@@ -485,7 +485,7 @@ export default function AdminATSConfig() {
                     Suggest criteria with AI
                   </p>
                   <p className="text-xs text-ink-500">
-                    Drafts criteria from this job's own description, responsibilities, and requirements — review,
+                    Drafts criteria from this job's own description, responsibilities, and requirements - review,
                     edit, or discard each one before it's added.
                   </p>
                 </div>
@@ -507,7 +507,7 @@ export default function AdminATSConfig() {
                 <div className="mt-4 flex flex-col gap-3">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-semibold uppercase tracking-wide text-ink-500">
-                      {suggestedCriteria.length} suggested — edit anything, then add
+                      {suggestedCriteria.length} suggested - edit anything, then add
                     </p>
                     <div className="flex items-center gap-2">
                       <button
@@ -601,7 +601,7 @@ function CriterionForm({
         />
       </label>
       <label className="flex flex-col gap-1 text-xs text-ink-500 sm:col-span-2">
-        Match keywords (comma-separated — matched against cover note & role)
+        Match keywords (comma-separated - matched against cover note & role)
         <input
           value={value.match_keywords.join(", ")}
           onChange={(e) => onChange({ ...value, match_keywords: e.target.value.split(",").map((k) => k.trim()).filter(Boolean) })}

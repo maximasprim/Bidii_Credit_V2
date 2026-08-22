@@ -39,7 +39,7 @@ type FormState = {
 const emptyForm: FormState = { title: "", category: CATEGORIES[0], excerpt: "", body: "", image_urls: [], is_published: true };
 
 /**
- * Upload control shared by the create and edit forms — uploads one or more
+ * Upload control shared by the create and edit forms - uploads one or more
  * images via POST /api/admin/news/upload-image (one request per file) and
  * reports the resulting list of stored paths back via onChange. Each
  * instance manages its own uploading/error state, so the create and edit

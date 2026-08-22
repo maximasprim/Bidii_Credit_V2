@@ -11,7 +11,7 @@ import LeadCaptureModal from "./components/ui/LeadCaptureModal";
 import { Toaster } from "react-hot-toast";
 
 // Home loads eagerly since it's the most common entry point. Every other
-// route is code-split so a visitor only downloads the page they asked for —
+// route is code-split so a visitor only downloads the page they asked for -
 // e.g. the Loan Calculator's recharts dependency, or the Branch Locator's
 // map, never load for someone just reading About or FAQ.
 const About = lazy(() => import("./pages/About"));
@@ -29,7 +29,7 @@ const Apply = lazy(() => import("./pages/Apply"));
 const Faq = lazy(() => import("./pages/Faq"));
 const PlaceholderPage = lazy(() => import("./pages/PlaceholderPage"));
 
-// Admin dashboard — a completely separate route tree (no public Navbar/
+// Admin dashboard - a completely separate route tree (no public Navbar/
 // Footer/sticky CTA), gated by its own auth provider, code-split as its
 // own chunk since it's irrelevant to the vast majority of visitors.
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
@@ -42,6 +42,7 @@ const AdminNews = lazy(() => import("./pages/admin/AdminNews"));
 const AdminJobs = lazy(() => import("./pages/admin/AdminJobs"));
 const AdminLoanTerms = lazy(() => import("./pages/admin/AdminLoanTerms"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminRolePermissions = lazy(() => import("./pages/admin/AdminRolePermissions"));
 
 //ATS
 const AdminATS = lazy(() => import("./pages/admin/AdminATS"));
@@ -116,6 +117,7 @@ function AdminApp() {
             <Route path="jobs" element={<AdminJobs />} />
             <Route path="loan-terms" element={<AdminLoanTerms />} />
             <Route path="users" element={<AdminUsers />} />
+            <Route path="role-permissions" element={<AdminRolePermissions />} />
             <Route path="ats" element={<AdminATS />} />
             <Route path="ats/config/:jobId" element={<AdminATSConfig />} />
             <Route path="ats/candidates/:applicationId" element={<AdminATSCandidate />} />

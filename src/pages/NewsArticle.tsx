@@ -25,7 +25,7 @@ function toArticle(a: (typeof staticArticles)[number]): Article {
     category: a.category,
     excerpt: a.excerpt,
     body: a.body,
-    // The offline fallback list predates article images — the API is the only source for those.
+    // The offline fallback list predates article images - the API is the only source for those.
     image_urls: [],
     published_at: a.date,
   };
@@ -159,7 +159,7 @@ export default function NewsArticle() {
               <img
                 key={url}
                 src={newsImageUrl(url)}
-                alt={`${article.title} — image ${i + 2}`}
+                alt={`${article.title} - image ${i + 2}`}
                 className="h-56 w-full rounded-2xl border border-mist-200 object-cover"
               />
             ))}
