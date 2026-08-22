@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
-import { AlertCircle, Home } from "lucide-react";
+import { AlertCircle, Home, Eye, EyeOff } from "lucide-react";
 import { useAdminAuth } from "../../lib/AdminAuthContext";
 import { usePageMeta } from "../../lib/usePageMeta";
 import loginBg from "../../../public/Bidii_Credit_Logo.png";
@@ -20,6 +20,7 @@ export default function AdminLogin() {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -82,7 +83,7 @@ export default function AdminLogin() {
               className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm focus:outline-none"
             />
           </div>
-          <div>
+          {/* <div>
             <label className="mb-1.5 block text-sm text-ink-500">Password</label>
             <input
               type="password"
@@ -92,6 +93,28 @@ export default function AdminLogin() {
               required
               className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm focus:outline-none"
             />
+          </div> */}
+          <div>
+            <label className="mb-1.5 block text-sm text-ink-500">Password</label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+                className="w-full rounded-xl border border-mist-200 px-4 py-2.5 pr-10 text-sm focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                tabIndex={-1}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-ink-500 hover:text-ink-700"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
           <button
             type="submit"
@@ -102,13 +125,13 @@ export default function AdminLogin() {
             {isSubmitting ? "Signing in…" : "Sign In"}
           </button>
           <div className="flex items-center justify-center ">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-orange-500 transition-colors hover:text-orange-400 hover:underline"
-          >
-            <Home size={14} />
-            Back to site
-          </Link>
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-orange-500 transition-colors hover:text-orange-400 hover:underline"
+            >
+              <Home size={14} />
+              Back to site
+            </Link>
           </div>
         </form>
       </div>
