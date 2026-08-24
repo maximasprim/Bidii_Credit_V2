@@ -163,9 +163,8 @@ export default function AdminBranches() {
         <h1 className="font-display text-lg font-bold" style={{ color: "var(--color-ink-900)" }}>
           Branches
         </h1>
-        <p className="text-sm text-ink-500">
-          {branches.length} branch{branches.length === 1 ? "" : "es"}, one relationship. Add, edit, or remove a
-          location - changes show up on the public Branch Locator and homepage immediately.
+        <p className="text-sm text-amber-600">
+          {branches.length} Branch{branches.length === 1 ? "" : "es"}, One Relationship.
         </p>
       </div>
 
