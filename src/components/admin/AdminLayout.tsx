@@ -15,6 +15,7 @@ import {
   X,
   ClipboardCheck,
   ShieldCheck,
+  Building2,
 } from "lucide-react";
 import { useAdminAuth } from "../../lib/AdminAuthContext";
 import { useTheme } from "../../lib/useTheme";
@@ -31,6 +32,7 @@ const tabs = [
   { to: "/admin/career-applications", label: "Career Applications", icon: Briefcase },
   { to: "/admin/news", label: "News Articles", icon: Newspaper },
   { to: "/admin/loan-terms", label: "Loan Products", icon: BadgeDollarSign },
+  { to: "/admin/branches", label: "Branches", icon: Building2 },
   { to: "/admin/users", label: "Admin Users", icon: Users },
   { to: "/admin/role-permissions", label: "Roles & Permissions", icon: ShieldCheck },
 ];

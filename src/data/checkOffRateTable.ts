@@ -32,8 +32,8 @@ export const CHECK_OFF_RATE_TABLE: CheckOffRateRow[] = [
   { durationMonths: 96, monthlyInterestRate: 0.025, factor: 0.0354833333333333 },
   { durationMonths: 108, monthlyInterestRate: 0.0225, factor: 0.031826 },
   { durationMonths: 120, monthlyInterestRate: 0.02, factor: 0.0284 },
-  { durationMonths: 132, monthlyInterestRate: 0.019, factor: 0.0266426666666667 },
-  { durationMonths: 144, monthlyInterestRate: 0.018, factor: 0.0250113333333333 },
+  // { durationMonths: 132, monthlyInterestRate: 0.019, factor: 0.0266426666666667 },
+  // { durationMonths: 144, monthlyInterestRate: 0.018, factor: 0.0250113333333333 },
 ];
 
 // Loan Application Fee (flat), Loan Processing Fee rate, Insurance Fee rate.

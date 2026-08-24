@@ -41,6 +41,7 @@ const AdminCareerApplications = lazy(() => import("./pages/admin/AdminCareerAppl
 const AdminNews = lazy(() => import("./pages/admin/AdminNews"));
 const AdminJobs = lazy(() => import("./pages/admin/AdminJobs"));
 const AdminLoanTerms = lazy(() => import("./pages/admin/AdminLoanTerms"));
+const AdminBranches = lazy(() => import("./pages/admin/AdminBranches"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminRolePermissions = lazy(() => import("./pages/admin/AdminRolePermissions"));
 
@@ -116,6 +117,7 @@ function AdminApp() {
             <Route path="news" element={<AdminNews />} />
             <Route path="jobs" element={<AdminJobs />} />
             <Route path="loan-terms" element={<AdminLoanTerms />} />
+            <Route path="branches" element={<AdminBranches />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="role-permissions" element={<AdminRolePermissions />} />
             <Route path="ats" element={<AdminATS />} />

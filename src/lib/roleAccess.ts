@@ -47,6 +47,7 @@ export const MENU_REGISTRY: { path: string; label: string }[] = [
   { path: "/admin/news", label: "News Articles" },
   { path: "/admin/jobs", label: "Job Listings" },
   { path: "/admin/loan-terms", label: "Products" },
+  { path: "/admin/branches", label: "Branches" },
   { path: "/admin/users", label: "Admin Users" },
   { path: "/admin/role-permissions", label: "Roles & Permissions" },
 ];

@@ -1,7 +1,7 @@
 import { useMemo, useState, lazy, Suspense } from "react";
 import { MapPin, Phone, Clock, Search, Navigation } from "lucide-react";
 import PageHero from "../components/ui/PageHero";
-import { branches } from "../data/content";
+import { useBranches } from "../lib/useBranches";
 import { usePageMeta } from "../lib/usePageMeta";
 
 const BranchMap = lazy(() => import("../components/ui/BranchMap"));
@@ -9,10 +9,11 @@ const BranchMap = lazy(() => import("../components/ui/BranchMap"));
 export default function Branches() {
   usePageMeta("Branch Locator");
   const [query, setQuery] = useState("");
+  const { branches, isFallback } = useBranches();
 
   const filtered = useMemo(
     () => branches.filter((b) => b.name.toLowerCase().includes(query.toLowerCase())),
-    [query]
+    [branches, query]
   );
 
   return (
@@ -34,17 +35,22 @@ export default function Branches() {
       </PageHero>
 
       <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
+        {isFallback && (
+          <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-700">
+            Showing default branch locations - live data is temporarily unavailable.
+          </p>
+        )}
         <div className="grid gap-8 lg:grid-cols-[1fr_1.2fr]">
-          <div className="space-y-4 lg:h-screen lg:overflow-y-auto lg:border border-gray-200 border-r lg:rounded-2xl">
+          <div className="space-y-4 lg:h-screen lg:overflow-y-auto lg:border-t border-gray-200 lg:border-r lg:rounded-2xl lg:shadow-sm">
             {filtered.length === 0 && (
               <p className="rounded-xl border border-mist-200 p-6 text-sm text-ink-500">
                 No branches match "{query}". Try a different town.
               </p>
             )}
             {filtered.map((b) => (
-              <div key={b.name} className="rounded-2xl border border-mist-200 bg-white p-6">
+              <div key={b.name} className="rounded-2xl border border-mist-200 p-6">
                 <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-display text-base font-bold" style={{ color: "var(--color-navy-900)" }}>
+                  <h3 className="font-display text-base font-bold" style={{ color: "var(--color-ink-900)" }}>
                     {b.name}
                   </h3>
                   <a
@@ -76,16 +82,6 @@ export default function Branches() {
             ))}
           </div>
 
-          {/* <div
-            className="flex min-h-[420px] flex-col items-center justify-center rounded-3xl border border-mist-200 p-10 text-center"
-            style={{ backgroundColor: "var(--color-mist-100)" }}
-          >
-            <MapPin size={32} style={{ color: "var(--color-navy-700)" }} />
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-500">
-              An interactive map connects here once a Google Maps API key is added — each branch
-              card's "Directions" link already opens live directions in the meantime.
-            </p>
-          </div> */}
           <div className="overflow-hidden rounded-3xl border border-mist-200" style={{ minHeight: 420 }}>
             <Suspense
               fallback={

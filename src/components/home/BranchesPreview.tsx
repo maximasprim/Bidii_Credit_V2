@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import { MapPin, Phone, Clock, ArrowUpRight } from "lucide-react";
-import { branches } from "../../data/content";
+import { useBranches } from  "../../lib/useBranches";
 
 export default function BranchesPreview() {
+const { branches } = useBranches();
+
   return (
     <section className="py-10" style={{ backgroundColor: "var(--color-mist-100)" }}>
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
