@@ -19,6 +19,7 @@ type Job = {
   responsibilities: string[];
   is_open: boolean;
   application_count: number;
+  application_deadline: string | null;
 };
 
 const JOB_TYPES = ["Full-time", "Contract"];
@@ -34,6 +35,10 @@ type FormState = {
   requirementsText: string;
   responsibilitiesText: string;
   is_open: boolean;
+  // "YYYY-MM-DD" from the date input, or "" for no deadline (rolling
+  // applications) - converted to/from application_deadline around the API
+  // calls, same pattern as requirementsText/responsibilitiesText above.
+  deadlineText: string;
 };
 
 const emptyForm: FormState = {
@@ -45,6 +50,7 @@ const emptyForm: FormState = {
   requirementsText: "",
   responsibilitiesText: "",
   is_open: true,
+  deadlineText: "",
 };
 
 /** Textarea (one item per line) -> the ordered list the API expects. */
@@ -141,11 +147,12 @@ export default function AdminJobs() {
     setCreateError(null);
     setCreating(true);
     try {
-      const { requirementsText, responsibilitiesText, ...rest } = createForm;
+      const { requirementsText, responsibilitiesText, deadlineText, ...rest } = createForm;
       await adminPost("/api/admin/jobs", {
         ...rest,
         requirements: linesToList(requirementsText),
         responsibilities: linesToList(responsibilitiesText),
+        application_deadline: deadlineText || null,
       });
       setCreateForm(emptyForm);
       reload();
@@ -167,6 +174,7 @@ export default function AdminJobs() {
       requirementsText: listToLines(job.requirements),
       responsibilitiesText: listToLines(job.responsibilities),
       is_open: job.is_open,
+      deadlineText: job.application_deadline ?? "",
     });
     setEditError(null);
   }
@@ -175,11 +183,16 @@ export default function AdminJobs() {
     setSavingEdit(true);
     setEditError(null);
     try {
-      const { requirementsText, responsibilitiesText, ...rest } = editForm;
+      const { requirementsText, responsibilitiesText, deadlineText, ...rest } = editForm;
       await adminPatch(`/api/admin/jobs/${id}`, {
         ...rest,
         requirements: linesToList(requirementsText),
         responsibilities: linesToList(responsibilitiesText),
+        // application_deadline is only treated as "set" when present, so an
+        // explicit flag is needed to actually clear an existing deadline -
+        // see JobOpeningUpdate on the backend.
+        application_deadline: deadlineText || null,
+        clear_application_deadline: !deadlineText,
       });
       setEditingId(null);
       reload();
@@ -318,6 +331,17 @@ export default function AdminJobs() {
               />
             </div>
           </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink-500">
+              Application deadline (optional - leave blank for rolling applications)
+            </label>
+            <input
+              type="date"
+              value={createForm.deadlineText}
+              onChange={(e) => setCreateForm({ ...createForm, deadlineText: e.target.value })}
+              className="rounded-xl border border-mist-200 px-4 py-2.5 text-sm text-ink-700 focus:outline-none"
+            />
+          </div>
           <label className="flex items-center gap-2 text-sm text-ink-700">
             <input
               type="checkbox"
@@ -421,6 +445,17 @@ export default function AdminJobs() {
                           />
                         </div>
                       </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-ink-500">
+                          Application deadline (optional - leave blank for rolling applications)
+                        </label>
+                        <input
+                          type="date"
+                          value={editForm.deadlineText}
+                          onChange={(e) => setEditForm({ ...editForm, deadlineText: e.target.value })}
+                          className="rounded-lg border border-mist-200 px-3 py-2 text-sm text-ink-700 focus:outline-none"
+                        />
+                      </div>
                       <label className="flex items-center gap-2 text-sm text-ink-700">
                         <input
                           type="checkbox"
@@ -457,6 +492,7 @@ export default function AdminJobs() {
                         </div>
                         <p className="mt-1 text-xs text-ink-500">
                           {job.department} · {job.location} · {job.type}
+                          {job.application_deadline && <> · Apply by {job.application_deadline}</>}
                         </p>
                         <p className="mt-1.5 max-w-xl text-sm text-ink-700">{job.description}</p>
                         {(job.requirements.length > 0 || job.responsibilities.length > 0) && (
@@ -506,6 +542,7 @@ export default function AdminJobs() {
     </div>
   );
 }
+
 
 
 // import { useEffect, useState } from "react";
