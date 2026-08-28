@@ -36,7 +36,7 @@ const socialIcons = [
 export default function Footer() {
   return (
     <footer style={{ backgroundColor: "var(--color-navy-950)" }} className="text-white">
-      <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
+      <div className="mx-auto max-w-7xl px-5 py-4 mt-12 lg:px-8">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1.2fr]">
           <div className="sm:col-span-2 lg:col-span-1">
             {/* <div className="bg-white p-1 rounded-full w-16 h-16 flex items-center justify-center mb-2"> */}
