@@ -8,7 +8,7 @@ function formatKes(n: number) {
 }
 
 // Mirrors Jikuze Plus (see src/data/fallbackLoanTiers.ts / the seeded
-// sme-loans/jikuze-plus tier) — hardcoded on purpose: this preview sits on
+// sme-loans/jikuze-plus tier) - hardcoded on purpose: this preview sits on
 // the landing page, where we don't want a network fetch or loading state.
 // If Jikuze Plus's rate/bounds ever change in the backend, update these
 // three constants to match so the homepage preview doesn't drift out of

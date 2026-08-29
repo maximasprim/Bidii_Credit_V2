@@ -15,14 +15,14 @@ type AdminAuthContextValue = {
   role: string | null;
     /**
    * This admin's currently-allowed dashboard menu paths, fetched from
-   * GET /api/admin/role-permissions/mine — the live, admin-configured
+   * GET /api/admin/role-permissions/mine - the live, admin-configured
    * answer. null until that fetch resolves (or if it fails); AdminLayout
    * falls back to a static default for that window, see roleAccess.ts.
    */
   allowedMenus: string[] | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
-    /** Re-fetches allowedMenus — call after saving changes on the Roles &
+    /** Re-fetches allowedMenus - call after saving changes on the Roles &
    *  Permissions page so an affected admin's own sidebar (if they're not
    *  "admin") updates without needing to log out and back in. */
   refreshPermissions: () => void;
@@ -43,7 +43,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
     if (isAuthenticated) fetchPermissions();
-    // Only on mount (session restore from a stored token) — login() and
+    // Only on mount (session restore from a stored token) - login() and
     // refreshPermissions() below trigger their own fetches explicitly.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

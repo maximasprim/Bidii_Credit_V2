@@ -23,7 +23,7 @@ export interface SubmitLeadInput {
 
 /**
  * Submits a lead to the CRM. Resolves to true/false rather than throwing,
- * since a failure here should never interrupt the visitor's flow — callers
+ * since a failure here should never interrupt the visitor's flow - callers
  * that want to react to failure (e.g. the opt-in modal, to show a friendly
  * retry message) can check the boolean; callers that fire this
  * silently alongside another action (Contact/Apply submit) can ignore it.

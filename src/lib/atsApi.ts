@@ -1,5 +1,5 @@
 /**
- * ATS (Applicant Tracking System) API layer — thin, typed wrappers around
+ * ATS (Applicant Tracking System) API layer - thin, typed wrappers around
  * the existing adminGet/adminPost/adminPatch/adminDelete helpers from
  * adminApi.ts. No new auth or fetch machinery: this module reuses the same
  * bearer-token handling, 401 session-expiry event, and error shape as

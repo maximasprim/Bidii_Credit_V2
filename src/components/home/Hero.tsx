@@ -94,7 +94,7 @@ export default function Hero() {
           </motion.ul>
         </div>
 
-        {/* Loan snapshot card — the product itself, not a decorative illustration */}
+        {/* Loan snapshot card - the product itself, not a decorative illustration */}
         <motion.div
           initial={{ opacity: 0, y: 24, rotate: -1 }}
           animate={{ opacity: 1, y: 0, rotate: 0 }}

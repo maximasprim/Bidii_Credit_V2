@@ -3,7 +3,7 @@ import type { LoanTier } from "../lib/useLoanTiers";
 /**
  * If /api/loan-tiers can't be reached, the site falls back to this data
  * instead of breaking the Calculator/Apply flow. This mirrors the backend's
- * app/data/seed_loan_tiers.py — if an admin edits rates in the dashboard,
+ * app/data/seed_loan_tiers.py - if an admin edits rates in the dashboard,
  * this fallback won't reflect that (it's a last-resort default, not a
  * cache), but it keeps the loan calculator and application usable if the
  * backend is briefly down.

@@ -63,7 +63,7 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
 
 /**
  * POSTs FormData (e.g. a file upload) to the backend. Deliberately does NOT
- * set a Content-Type header — the browser sets the correct multipart
+ * set a Content-Type header - the browser sets the correct multipart
  * boundary automatically, which breaks if overridden manually.
  */
 export async function apiPostForm<T>(path: string, formData: FormData): Promise<T> {

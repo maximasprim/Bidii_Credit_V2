@@ -69,7 +69,7 @@ function buildSchedule(tier: LoanTier, amount: number, term: number, trackingFee
 
   // One-time fees, all based on the requested principal. These fields are
   // only present on `tier` for a logged-in admin/loan officer (see
-  // useLoanTiers) — for the general public they're simply absent, so this
+  // useLoanTiers) - for the general public they're simply absent, so this
   // defaults to 0. That's harmless either way: the Fees & Charges panel
   // built from this data is only ever rendered for privileged viewers
   // (see CalculatorBody/CheckOffCalculatorBody), so a public visitor
@@ -201,7 +201,7 @@ function CalculatorBody({
 
   // The internal "Fees & charges" breakdown (registration/processing/
   // insurance/chattel/incharge fees, excise duty, net amount disbursed)
-  // is only for logged-in admins/loan officers — the general public only
+  // is only for logged-in admins/loan officers - the general public only
   // sees the installment, total interest, total repayment, and rate,
   // none of which depend on this flag.
   const { isAuthenticated, role } = useAdminAuth();
@@ -833,7 +833,7 @@ function CalculatorBody({
 }
 
 /**
- * Dedicated Check Off Loans calculator — this product is underwritten by
+ * Dedicated Check Off Loans calculator - this product is underwritten by
  * salary affordability against a duration-based rate/factor table, not by
  * a simple amount slider, so it doesn't share the generic CalculatorBody's
  * logic at all. Matches Bidii's real check-off calculator
@@ -858,7 +858,7 @@ function CheckOffCalculatorBody({
     [productSlug]
   );
 
-  // Same staff-only gate as CalculatorBody — see the comment there.
+  // Same staff-only gate as CalculatorBody - see the comment there.
   const { isAuthenticated, role } = useAdminAuth();
   const canViewInternalFees = isAuthenticated && role !== null && PRIVILEGED_ROLES.has(role);
 
@@ -2123,7 +2123,7 @@ function CheckOffCalculatorBody({
 // }
 
 // /**
-//  * Dedicated Check Off Loans calculator — this product is underwritten by
+//  * Dedicated Check Off Loans calculator - this product is underwritten by
 //  * salary affordability against a duration-based rate/factor table, not by
 //  * a simple amount slider, so it doesn't share the generic CalculatorBody's
 //  * logic at all. Matches Bidii's real check-off calculator
@@ -2259,7 +2259,7 @@ function CheckOffCalculatorBody({
 //         <div className="mx-auto mt-6 max-w-2xl px-5">
 //           <div className="flex items-center gap-2.5 rounded-xl border border-mist-200 bg-mist-50 px-4 py-3 text-xs text-ink-500">
 //             <Info size={14} className="shrink-0" />
-//             Showing standard rates — we couldn't reach the server for the latest terms.
+//             Showing standard rates - we couldn't reach the server for the latest terms.
 //           </div>
 //         </div>
 //       )}
@@ -2397,7 +2397,7 @@ function CheckOffCalculatorBody({
 //             </div>
 
 //             <div className="mb-6">
-//               <label className="mb-1.5 block text-sm text-ink-500">Retirement date (optional — caps your eligible term)</label>
+//               <label className="mb-1.5 block text-sm text-ink-500">Retirement date (optional - caps your eligible term)</label>
 //               <input
 //                 type="date"
 //                 value={retirementDate}

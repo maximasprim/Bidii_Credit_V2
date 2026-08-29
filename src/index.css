@@ -23,7 +23,7 @@
   --color-ink-700: #3D4756;
   --color-ink-500: #647084;
 
-  /* Card/surface background — distinct from page background (--color-mist-50)
+  /* Card/surface background - distinct from page background (--color-mist-50)
      so dark mode can swap "white cards on a light page" to "raised dark cards
      on a darker page" by redefining these two independently. */
   --color-surface: #FFFFFF;
@@ -34,7 +34,7 @@
 
 /* Class-based dark mode: every utility generated from the tokens above
    (bg-mist-50, text-ink-900, border-mist-200, bg-surface, etc.) and every
-   inline style referencing var(--color-*) picks this up automatically —
+   inline style referencing var(--color-*) picks this up automatically -
    no per-component "dark:" variants needed. Sections that are permanently
    navy regardless of theme (Hero, PageHero, CTABand, footer) are untouched
    since they use --color-navy-* directly, which doesn't change here. */

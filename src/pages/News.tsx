@@ -68,7 +68,7 @@ export default function News() {
             title: a.title,
             category: a.category,
             excerpt: a.excerpt,
-            // The offline fallback list predates article images — the API is the only source for those.
+            // The offline fallback list predates article images - the API is the only source for those.
             image_urls: [] as string[],
             published_at: a.date,
           }));

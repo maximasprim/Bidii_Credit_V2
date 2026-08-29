@@ -17,7 +17,7 @@ export type Branch = {
 /**
  * Fetches every active branch once, sorted by display_order. This is the
  * live, admin-editable replacement for what used to be a hardcoded
- * `branches` array in src/data/content.ts — an admin can now add, edit,
+ * `branches` array in src/data/content.ts - an admin can now add, edit,
  * or remove a branch from the dashboard (Branches page) and it shows up
  * on the site immediately, no redeploy needed.
  *
@@ -25,7 +25,7 @@ export type Branch = {
  * src/data/fallbackBranches.ts (the original hardcoded branch list)
  * instead of leaving the Branch Locator / homepage preview empty.
  * `isFallback` lets callers show a subtle "showing default locations"
- * notice rather than a hard error — same pattern as useLoanTiers.
+ * notice rather than a hard error - same pattern as useLoanTiers.
  */
 export function useBranches() {
   const [branches, setBranches] = useState<Branch[]>([]);

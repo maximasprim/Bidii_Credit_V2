@@ -113,7 +113,7 @@ export default function AdminNotifications() {
   const activeTemplates = templates.filter((t) => t.is_active);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <div className="mx-auto max-w-7xl">
       <div className="mb-6 flex items-center gap-2">
         <Mail size={20} className="text-brand-600" />
         <h1 className="font-display text-xl font-bold text-ink-900">Candidate Notifications</h1>
@@ -173,7 +173,7 @@ export default function AdminNotifications() {
               <h2 className="text-sm font-semibold text-ink-900">Templates</h2>
               <button
                 onClick={() => setShowCreateForm((v) => !v)}
-                className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
+                className="flex items-center gap-1.5 rounded-lg bg-ink-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
               >
                 <Plus size={13} /> New template
               </button>

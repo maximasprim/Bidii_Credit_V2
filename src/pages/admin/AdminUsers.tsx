@@ -90,7 +90,7 @@ export default function AdminUsers() {
         password: newPassword,
         role: newRole,
         branch_id: newRole === "loan_officer" ? newBranchId || null : null,
-        managed_branch_ids: newRole === "regional_manager" ? newManagedBranchIds : null,
+        managed_branch_ids: newRole === "branch_office_admin" ? newManagedBranchIds : null,
       });
       setNewUsername("");
       setNewPassword("");
@@ -127,7 +127,7 @@ export default function AdminUsers() {
       const body: Record<string, unknown> = { username: editUsername, role: editRole };
       if (editPassword) body.password = editPassword;
       if (editRole === "loan_officer") body.branch_id = editBranchId || null;
-      if (editRole === "regional_manager") body.managed_branch_ids = editManagedBranchIds;
+      if (editRole === "branch_office_admin") body.managed_branch_ids = editManagedBranchIds;
       await adminPatch(`/api/admin/users/${id}`, body);
       setEditingId(null);
       reload();
@@ -232,7 +232,7 @@ export default function AdminUsers() {
               </select>
             </div>
           )}
-          {newRole === "regional_manager" && (
+          {newRole === "branch_office_admin" && (
             <div className="min-w-[220px]">
               <label className="mb-1.5 block text-sm text-ink-500">Managed branches</label>
               <select
@@ -343,7 +343,7 @@ export default function AdminUsers() {
                                 {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
                               </select>
                             )}
-                            {editRole === "regional_manager" && (
+                            {editRole === "branch_office_admin" && (
                               <select
                                 multiple
                                 value={editManagedBranchIds}

@@ -3,7 +3,7 @@ import type { Branch } from "../lib/useBranches";
 /**
  * If /api/branches can't be reached, the site falls back to this data
  * instead of showing an empty Branch Locator / homepage preview. This
- * mirrors the backend's app/data/seed_branches.py — if an admin edits
+ * mirrors the backend's app/data/seed_branches.py - if an admin edits
  * branches in the dashboard, this fallback won't reflect that (it's a
  * last-resort default, not a cache), but it keeps the site usable if the
  * backend is briefly down. Same pattern as fallbackLoanTiers.ts.

@@ -5,7 +5,7 @@ export const ADMIN_TOKEN_KEY = "bidii_admin_token";
 
 /**
  * Decodes the (unsigned, client-side-only) payload of the current JWT to
- * read its subject — the logged-in admin's user ID. This is display-only
+ * read its subject - the logged-in admin's user ID. This is display-only
  * ("is this row me?" in the Users table); the backend independently
  * verifies the token's signature on every request, so nothing security-
  * relevant depends on this decode being trustworthy.
@@ -23,7 +23,7 @@ export function getCurrentAdminId(): string | null {
 }
 
 /**
- * Same decode as getCurrentAdminId, but for the `role` claim — used to
+ * Same decode as getCurrentAdminId, but for the `role` claim - used to
  * decide whether to show admin/loan-officer-only UI (e.g. the internal
  * fee breakdown on the public Loan Calculator). Display-only: every
  * endpoint that actually returns privileged data re-checks the role
@@ -117,7 +117,7 @@ export async function adminPut<T>(path: string, body: unknown): Promise<T> {
   return handleResponse<T>(response);
 }
 
-/** For multipart uploads (e.g. a news article image) — no Content-Type header, the browser sets the boundary itself. */
+/** For multipart uploads (e.g. a news article image) - no Content-Type header, the browser sets the boundary itself. */
 export async function adminPostForm<T>(path: string, formData: FormData): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: "POST",
@@ -135,7 +135,7 @@ export async function adminDelete<T>(path: string): Promise<T> {
   return handleResponse<T>(response);
 }
 
-/** For downloading a CV — needs the auth header, so a plain <a href> won't work. */
+/** For downloading a CV - needs the auth header, so a plain <a href> won't work. */
 export async function adminDownloadFile(path: string, filename: string): Promise<void> {
   const response = await fetch(`${API_BASE_URL}${path}`, { headers: authHeaders() });
   if (!response.ok) {
@@ -169,7 +169,7 @@ export async function adminLogin(username: string, password: string): Promise<{ 
 
 // /**
 //  * Decodes the (unsigned, client-side-only) payload of the current JWT to
-//  * read its subject — the logged-in admin's user ID. This is display-only
+//  * read its subject - the logged-in admin's user ID. This is display-only
 //  * ("is this row me?" in the Users table); the backend independently
 //  * verifies the token's signature on every request, so nothing security-
 //  * relevant depends on this decode being trustworthy.
@@ -261,7 +261,7 @@ export async function adminLogin(username: string, password: string): Promise<{ 
 //   return handleResponse<T>(response);
 // }
 
-// /** For downloading a CV — needs the auth header, so a plain <a href> won't work. */
+// /** For downloading a CV - needs the auth header, so a plain <a href> won't work. */
 // export async function adminDownloadFile(path: string, filename: string): Promise<void> {
 //   const response = await fetch(`${API_BASE_URL}${path}`, { headers: authHeaders() });
 //   if (!response.ok) {

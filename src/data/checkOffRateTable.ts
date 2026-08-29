@@ -1,7 +1,7 @@
 /**
  * Extracted directly from Bidii Credit's real check-off loan calculator
  * (loan_calculator_.xlsx, "Definitions" sheet). Do not adjust these without
- * checking against that source — they encode actual pricing decisions, not
+ * checking against that source - they encode actual pricing decisions, not
  * a generic formula.
  *
  * FACTOR is the installment-per-shilling ratio for that duration: given an
@@ -45,7 +45,7 @@ export const CHECK_OFF_FEES = {
 
 /**
  * XLOOKUP(term, Duration, ..., match_mode=-1) in the source sheet means
- * "exact match, or the next smaller duration if there's no exact one" —
+ * "exact match, or the next smaller duration if there's no exact one" -
  * so an arbitrary term still resolves to a sensible row instead of failing.
  */
 export function findCheckOffRateRow(termMonths: number): CheckOffRateRow {

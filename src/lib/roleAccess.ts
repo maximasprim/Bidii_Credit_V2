@@ -3,33 +3,33 @@
  *
  * WHICH ROLE CAN SEE WHICH MENU IS NOW ADMIN-CONFIGURABLE FROM THE
  * DASHBOARD (Roles & Permissions page, admin-only), not fixed in this
- * file — an admin edits it via GET/PUT /api/admin/role-permissions (see
+ * file - an admin edits it via GET/PUT /api/admin/role-permissions (see
  * AdminRolePermissions.tsx), and AdminAuthContext fetches the current
  * admin's own effective menus (GET /api/admin/role-permissions/mine)
  * right after login and keeps them in context for AdminLayout to read.
  *
  * DEFAULT_MENU_ACCESS below is only the FALLBACK: what's used before
  * that fetch resolves, or if it ever fails (offline, backend briefly
- * down) — so the sidebar always has something sensible to show rather
+ * down) - so the sidebar always has something sensible to show rather
  * than flashing empty or blocking the whole dashboard on one network
  * request. It mirrors the backend's own DEFAULT_MENU_ACCESS in
  * app/services/role_permissions.py; keep them in sync if you add a
  * page, though a mismatch is only ever a brief fallback-vs-live
- * inconsistency, never a security gap — the backend is what actually
+ * inconsistency, never a security gap - the backend is what actually
  * decides.
  *
- * "admin" always has every menu, unconditionally, on both sides — never
+ * "admin" always has every menu, unconditionally, on both sides - never
  * fetched, never stored, never editable via the settings page.
  */
 
-export type AdminRole = "admin" | "loan_officer" | "hr" | "marketing_manager" | "regional_manager";
+export type AdminRole = "admin" | "loan_officer" | "hr" | "marketing_manager" | "branch_office_admin";
 
 export const ADMIN_ROLES: { value: AdminRole; label: string }[] = [
   { value: "admin", label: "Admin" },
   { value: "loan_officer", label: "Loan Officer" },
   { value: "hr", label: "HR" },
   { value: "marketing_manager", label: "Marketing Manager" },
-  { value: "regional_manager", label: "Regional Manager" },
+  { value: "branch_office_admin", label: "Branch Office Admin" },
 ];
 
 export function roleLabel(role: string): string {
@@ -56,13 +56,13 @@ export const MENU_REGISTRY: { path: string; label: string }[] = [
 
 const ALL_MENU_PATHS = MENU_REGISTRY.map((m) => m.path);
 
-/** Fallback only — see file header. Kept in sync with the backend's
+/** Fallback only - see file header. Kept in sync with the backend's
  *  DEFAULT_MENU_ACCESS in app/services/role_permissions.py. */
 export const DEFAULT_MENU_ACCESS: Record<Exclude<AdminRole, "admin">, string[]> = {
   loan_officer: ["/admin", "/admin/loan-applications", "/admin/loan-terms"],
   hr: ["/admin", "/admin/career-applications", "/admin/ats", "/admin/jobs", "/admin/notifications"],
   marketing_manager: ["/admin", "/admin/contacts", "/admin/news", "/admin/jobs"],
-  regional_manager: ["/admin", "/admin/loan-applications", "/admin/loan-terms"],
+  branch_office_admin: ["/admin", "/admin/loan-applications", "/admin/loan-terms"],
 };
 
 /**
@@ -81,7 +81,7 @@ export function resolveAllowedMenus(role: string | null, fetchedAllowedMenus: st
 /**
  * True if `pathname` is in `allowedMenus`, falling back from an exact
  * match to the longest entry this route lives under (e.g.
- * "/admin/ats/candidates/abc-123" falls under "/admin/ats" — so a
+ * "/admin/ats/candidates/abc-123" falls under "/admin/ats" - so a
  * per-record sub-page shares its parent menu's access without needing
  * its own entry anywhere).
  */

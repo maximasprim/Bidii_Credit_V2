@@ -8,7 +8,7 @@ type GrowthLineProps = {
 };
 
 /**
- * Signature motif: an ascending staircase line — each flat tread is a
+ * Signature motif: an ascending staircase line - each flat tread is a
  * deliberate step, each riser is the effort between steps. It stands in
  * for "bidii" (Kiswahili: diligence/effort) compounding into visible
  * growth, and it recurs at different scales through the page: full hero

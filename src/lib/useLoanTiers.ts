@@ -8,10 +8,10 @@ export type InterestBasis = "flat_over_term" | "per_month";
 
 // Internal fee fields are optional on this type because they're only
 // present once merged in for a logged-in admin/loan officer (see
-// useLoanTiers) — the rest of the calculation (installment, total
+// useLoanTiers) - the rest of the calculation (installment, total
 // interest, total repayment) never depends on them. Whether to actually
 // *display* fee data is a separate, role-based decision made by the
-// caller (see PRIVILEGED_ROLES / useAdminAuth) — not by checking whether
+// caller (see PRIVILEGED_ROLES / useAdminAuth) - not by checking whether
 // these fields happen to be present, since the offline fallback data
 // below always includes them (it's static data bundled into the JS, so
 // there's nothing to strip at the network layer for that path).
@@ -31,7 +31,7 @@ export type LoanTier = {
   tracking_fee_per_month: number;
   display_order: number;
   is_active: boolean;
-  // Internal — only present for a logged-in admin/loan officer.
+  // Internal - only present for a logged-in admin/loan officer.
   registration_fee?: number;
   processing_fee_rate?: number;
   life_insurance_fee_rate?: number;
@@ -47,7 +47,7 @@ export const PRIVILEGED_ROLES = new Set(["admin", "loan_officer"]);
 /**
  * Fetches every active loan tier once and groups them by product_slug.
  * This is the live, admin-editable replacement for what used to be a
- * hardcoded `tiers` array per product in src/data/content.ts — product
+ * hardcoded `tiers` array per product in src/data/content.ts - product
  * marketing copy (name, tagline, features, FAQs) still lives there, but
  * the financial terms now come from the backend so admin edits show up
  * immediately without a redeploy.
@@ -61,7 +61,7 @@ export const PRIVILEGED_ROLES = new Set(["admin", "loan_officer"]);
  * localStorage session used by /admin), this also fetches
  * GET /api/loan-tiers/internal and merges in the internal fee fields
  * (registration/processing/insurance/chattel/incharge fees, excise duty,
- * guarantors) — general-public visitors never get these fields from the
+ * guarantors) - general-public visitors never get these fields from the
  * live API at all. Callers should still gate *display* of any fee data
  * on the viewer's role (via useAdminAuth + PRIVILEGED_ROLES) rather than
  * on whether these fields are present, since the offline fallback tiers
@@ -149,7 +149,7 @@ export function useLoanTiers() {
 // /**
 //  * Fetches every active loan tier once and groups them by product_slug.
 //  * This is the live, admin-editable replacement for what used to be a
-//  * hardcoded `tiers` array per product in src/data/content.ts — product
+//  * hardcoded `tiers` array per product in src/data/content.ts - product
 //  * marketing copy (name, tagline, features, FAQs) still lives there, but
 //  * the financial terms now come from the backend so admin edits show up
 //  * immediately without a redeploy.

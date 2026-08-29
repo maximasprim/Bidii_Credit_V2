@@ -51,7 +51,7 @@ function fmtDate(iso: string) {
 export default function AdminLoanApplications() {
   usePageMeta("Loan Applications");
   const { role } = useAdminAuth();
-  const canAssign = role === "admin" || role === "regional_manager";
+  const canAssign = role === "admin" || role === "branch_office_admin";
 
   const [items, setItems] = useState<LoanApplication[]>([]);
   const [meta, setMeta] = useState<PageMeta | null>(null);
@@ -198,6 +198,7 @@ export default function AdminLoanApplications() {
                   </td>
                   <td className="px-4 py-3">
                     <p className="text-xs text-ink-500">{l.location || "-"}</p>
+                    <div className="flex flex-col gap-1">
                     {canAssign ? (
                       <select
                         value={l.assigned_branch_id ?? ""}
@@ -210,8 +211,9 @@ export default function AdminLoanApplications() {
                       <p className="font-medium">{l.assigned_branch_name || "Unassigned"}</p>
                     )}
                     {l.branch_assignment_method && (
-                      <span className="text-[10px] uppercase text-ink-400">via {l.branch_assignment_method}</span>
+                      <span className="text-[10px] text-ink-400 italic">Matched Via - {l.branch_assignment_method}</span>
                     )}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     {l.product_name}
