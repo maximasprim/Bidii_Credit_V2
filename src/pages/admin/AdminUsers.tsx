@@ -4,12 +4,16 @@ import { adminGet, adminPost, adminPatch, adminDelete, getCurrentAdminId } from 
 import { usePageMeta } from "../../lib/usePageMeta";
 import StatusBadge from "../../components/admin/StatusBadge";
 import { ADMIN_ROLES, roleLabel, type AdminRole } from "../../lib/roleAccess";
+import { getAllBranches } from "../../lib/branchesApi";
+import type { Branch } from "../../lib/useBranches";
 
 type AdminUser = {
   id: string;
   username: string;
   role: AdminRole;
   is_active: boolean;
+  branch_id: string | null;
+  managed_branch_ids: string[] | null;
   created_at: string;
 };
 
@@ -30,16 +34,28 @@ export default function AdminUsers() {
   const [newPassword, setNewPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [newRole, setNewRole] = useState<AdminRole>("admin");
+  const [newBranchId, setNewBranchId] = useState("");
+  const [newManagedBranchIds, setNewManagedBranchIds] = useState<string[]>([]);
   const [createError, setCreateError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+
+  const [branches, setBranches] = useState<Branch[]>([]);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editUsername, setEditUsername] = useState("");
   const [editPassword, setEditPassword] = useState("");
   const [showEditPassword, setShowEditPassword] = useState(false);
   const [editRole, setEditRole] = useState<AdminRole>("admin");
+  const [editBranchId, setEditBranchId] = useState("");
+  const [editManagedBranchIds, setEditManagedBranchIds] = useState<string[]>([]);
   const [editError, setEditError] = useState<string | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
+
+  useEffect(() => {
+    getAllBranches()
+      .then((data) => setBranches(data.items))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,10 +85,18 @@ export default function AdminUsers() {
     setCreateError(null);
     setCreating(true);
     try {
-      await adminPost("/api/admin/users", { username: newUsername, password: newPassword, role: newRole });
+      await adminPost("/api/admin/users", {
+        username: newUsername,
+        password: newPassword,
+        role: newRole,
+        branch_id: newRole === "loan_officer" ? newBranchId || null : null,
+        managed_branch_ids: newRole === "regional_manager" ? newManagedBranchIds : null,
+      });
       setNewUsername("");
       setNewPassword("");
       setNewRole("admin");
+      setNewBranchId("");
+      setNewManagedBranchIds([]);
       reload();
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : "Couldn't create admin.");
@@ -86,6 +110,8 @@ export default function AdminUsers() {
     setEditUsername(user.username);
     setEditPassword("");
     setEditRole(user.role);
+    setEditBranchId(user.branch_id ?? "");
+    setEditManagedBranchIds(user.managed_branch_ids ?? []);
     setEditError(null);
   }
 
@@ -98,8 +124,10 @@ export default function AdminUsers() {
     setSavingEdit(true);
     setEditError(null);
     try {
-      const body: Record<string, string> = { username: editUsername, role: editRole };
+      const body: Record<string, unknown> = { username: editUsername, role: editRole };
       if (editPassword) body.password = editPassword;
+      if (editRole === "loan_officer") body.branch_id = editBranchId || null;
+      if (editRole === "regional_manager") body.managed_branch_ids = editManagedBranchIds;
       await adminPatch(`/api/admin/users/${id}`, body);
       setEditingId(null);
       reload();
@@ -190,6 +218,35 @@ export default function AdminUsers() {
               ))}
             </select>
           </div>
+          {newRole === "loan_officer" && (
+            <div className="min-w-[160px]">
+              <label className="mb-1.5 block text-sm text-ink-500">Home branch</label>
+              <select
+                value={newBranchId}
+                onChange={(e) => setNewBranchId(e.target.value)}
+                required
+                className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm focus:outline-none"
+              >
+                <option value="">Select a branch…</option>
+                {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+            </div>
+          )}
+          {newRole === "regional_manager" && (
+            <div className="min-w-[220px]">
+              <label className="mb-1.5 block text-sm text-ink-500">Managed branches</label>
+              <select
+                multiple
+                value={newManagedBranchIds}
+                onChange={(e) => setNewManagedBranchIds(Array.from(e.target.selectedOptions, (o) => o.value))}
+                className="w-full rounded-xl border border-mist-200 px-3 py-2 text-sm focus:outline-none"
+                size={Math.min(4, branches.length || 1)}
+              >
+                {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+              <p className="mt-1 text-xs text-ink-400">Ctrl/Cmd-click to select more than one.</p>
+            </div>
+          )}
           <button
             type="submit"
             disabled={creating}
@@ -276,6 +333,27 @@ export default function AdminUsers() {
                                 <option key={r.value} value={r.value}>{r.label}</option>
                               ))}
                             </select>
+                            {editRole === "loan_officer" && (
+                              <select
+                                value={editBranchId}
+                                onChange={(e) => setEditBranchId(e.target.value)}
+                                className="mt-1.5 w-full rounded-lg border border-mist-200 px-3 py-1.5 text-sm focus:outline-none"
+                              >
+                                <option value="">Select a branch…</option>
+                                {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                              </select>
+                            )}
+                            {editRole === "regional_manager" && (
+                              <select
+                                multiple
+                                value={editManagedBranchIds}
+                                onChange={(e) => setEditManagedBranchIds(Array.from(e.target.selectedOptions, (o) => o.value))}
+                                size={Math.min(4, branches.length || 1)}
+                                className="mt-1.5 w-full rounded-lg border border-mist-200 px-3 py-1.5 text-sm focus:outline-none"
+                              >
+                                {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                              </select>
+                            )}
                             {editError && <p className="mt-1 text-xs text-red-500">{editError}</p>}
                           </td>
                           <td className="px-3 py-2.5 text-ink-500">{fmtDate(u.created_at)}</td>

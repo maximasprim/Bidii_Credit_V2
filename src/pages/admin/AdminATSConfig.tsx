@@ -321,9 +321,11 @@ export default function AdminATSConfig() {
               Evaluation Method
             </h2>
             <p className="mb-4 text-xs text-ink-500">
-              Weighted Scoring matches keywords you configure below. AI Evaluation reads each candidate's cover note
-              and CV directly and judges fit against this job's posted requirements - no keywords needed. If AI
-              evaluation fails or isn't configured, screening automatically falls back to Weighted Scoring below.
+              Weighted Scoring matches the keywords you configure below. AI Evaluation reads each candidate's cover
+              note and CV directly and judges them against your Screening Criteria below one by one (respecting each
+              criterion's weight and required flag) - or, if no criteria are configured yet, against this job's
+              posted requirements as free text. If AI evaluation fails or isn't configured, screening automatically
+              falls back to Weighted Scoring.
             </p>
 
             <div className="mb-4 flex gap-2">
@@ -417,7 +419,10 @@ export default function AdminATSConfig() {
           <div className="rounded-2xl border border-mist-200 bg-surface p-5">
             <h2 className="mb-4 text-sm font-semibold" style={{ color: "var(--color-ink-900)" }}>
               Screening Criteria
-              <span className="ml-2 text-xs font-normal text-ink-500">(used by Weighted Scoring, and as the AI fallback)</span>
+              <span className="ml-2 text-xs font-normal text-ink-500">
+                (drives Weighted Scoring's keyword matching, AND AI Evaluation's per-criterion judgement when
+                evaluation mode is AI)
+              </span>
             </h2>
 
             {config.criteria.length === 0 && config.evaluation_mode === "ai" && (
@@ -601,13 +606,23 @@ function CriterionForm({
         />
       </label>
       <label className="flex flex-col gap-1 text-xs text-ink-500 sm:col-span-2">
-        Match keywords (comma-separated - matched against cover note & role)
+        Match keywords (comma-separated - matched literally against CV, cover note & role text)
         <input
           value={value.match_keywords.join(", ")}
           onChange={(e) => onChange({ ...value, match_keywords: e.target.value.split(",").map((k) => k.trim()).filter(Boolean) })}
-          placeholder="e.g. lending, credit, loan officer"
+          placeholder="e.g. lending, credit, loan officer, credit analysis, underwriting"
           className="rounded-lg border border-mist-200 px-3 py-2 text-sm text-ink-700"
         />
+        {value.match_keywords.length === 0 ? (
+          <span className="text-amber-600">
+            No keywords yet — this criterion will never match any applicant until you add at least one.
+          </span>
+        ) : value.match_keywords.length === 1 ? (
+          <span className="text-ink-400">
+            Matching is literal, not stemmed — one keyword misses variants like plurals or synonyms. Add a few
+            (e.g. "manage", "managed", "management") to cover how applicants actually phrase this.
+          </span>
+        ) : null}
       </label>
       <label className="flex flex-col gap-1 text-xs text-ink-500 sm:col-span-2">
         Description (optional, shown to recruiters)

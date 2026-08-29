@@ -21,6 +21,7 @@ import { useAdminAuth } from "../../lib/AdminAuthContext";
 import { useTheme } from "../../lib/useTheme";
 import { cn } from "../../lib/utils";
 import { pathAllowed, resolveAllowedMenus } from "../../lib/roleAccess";
+import NotificationBell from "./NotificationBell";
 import logo from "../../../public/Bidii-logo.png";
 
 const tabs = [
@@ -30,6 +31,7 @@ const tabs = [
   { to: "/admin/jobs", label: "Job Listings", icon: Briefcase },
   { to: "/admin/ats", label: "Candidate Screening", icon: ClipboardCheck },
   { to: "/admin/career-applications", label: "Career Applications", icon: Briefcase },
+  { to: "/admin/notifications", label: "Candidate Notifications", icon: Mail },
   { to: "/admin/news", label: "News Articles", icon: Newspaper },
   { to: "/admin/loan-terms", label: "Loan Products", icon: BadgeDollarSign },
   { to: "/admin/branches", label: "Branches", icon: Building2 },
@@ -128,6 +130,7 @@ export default function AdminLayout() {
           </span>
         </div>
         <div className="flex items-center gap-1 md:gap-2 lg:gap-3">
+          <NotificationBell />
           <button
             onClick={toggleTheme}
             aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}

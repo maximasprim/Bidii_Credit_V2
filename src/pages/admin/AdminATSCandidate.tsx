@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { AlertCircle, ArrowLeft, Download, CheckCircle2, XCircle, MinusCircle, Sparkles, ThumbsUp, ThumbsDown } from "lucide-react";
+import { AlertCircle, ArrowLeft, Download, CheckCircle2, XCircle, MinusCircle, Sparkles, ThumbsUp, ThumbsDown, Mail } from "lucide-react";
 import { adminDownloadFile, adminPatch } from "../../lib/adminApi";
 import { usePageMeta } from "../../lib/usePageMeta";
 import ATSRecommendationBadge, { ATSScorePill } from "../../components/admin/ats/ATSScoreBadge";
+import AdminSendNotificationModal from "./AdminSendNotificationModal";
 import {
   addRecruiterNote,
   finalRecommendation,
@@ -64,6 +65,7 @@ export default function AdminATSCandidate() {
   const [detail, setDetail] = useState<ATSVettingDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const [screening, setScreening] = useState<"default" | "weighted" | "ai" | null>(null);
 
   const [overrideChoice, setOverrideChoice] = useState<ATSRecommendation>("review");
@@ -193,8 +195,23 @@ export default function AdminATSCandidate() {
             <Download size={13} />
             Download CV
           </button>
+          <button
+            onClick={() => setShowEmailModal(true)}
+            className="flex items-center gap-1.5 rounded-xl border border-mist-200 px-3 py-2 text-xs font-semibold text-ink-700"
+          >
+            <Mail size={13} />
+            Send Email
+          </button>
         </div>
       </div>
+
+      {showEmailModal && (
+        <AdminSendNotificationModal
+          applicationId={application.id}
+          candidateName={application.full_name}
+          onClose={() => setShowEmailModal(false)}
+        />
+      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-6 lg:col-span-2">

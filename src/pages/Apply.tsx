@@ -16,6 +16,7 @@ const detailsSchema = z.object({
   phone: z.string().min(10, "Enter a valid phone number"),
   email: z.string().email("Enter a valid email address"),
   monthlyIncome: z.string().min(1, "Enter your estimated monthly income"),
+  location: z.string().min(2, "Tell us roughly where you're based"),
 });
 
 type DetailsForm = z.infer<typeof detailsSchema>;
@@ -173,6 +174,7 @@ function ApplyBody({
         phone: details.phone,
         email: details.email,
         monthly_income: details.monthlyIncome,
+        location: details.location,
       });
       setSubmitted(true);
             // Fire-and-forget: the application already has everything the CRM
@@ -401,6 +403,16 @@ function ApplyBody({
               <input {...register("monthlyIncome")} className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm focus:outline-none" />
               {errors.monthlyIncome && <p className="mt-1 text-xs text-red-500">{errors.monthlyIncome.message}</p>}
             </div>
+            <div>
+              <label className="mb-1.5 block text-sm text-ink-500">Where are you based? (town, estate, or area)</label>
+              <input
+                {...register("location")}
+                placeholder="e.g. Kericho town, or Umoja Estate, Nairobi"
+                className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm focus:outline-none"
+              />
+              <p className="mt-1 text-xs text-ink-400">We use this to route your application to your nearest branch.</p>
+              {errors.location && <p className="mt-1 text-xs text-red-500">{errors.location.message}</p>}
+            </div>
 
             <div className="flex gap-3 pt-2">
               <button
@@ -448,6 +460,7 @@ function ApplyBody({
                 ["Phone", details.phone],
                 ["Email", details.email],
                 ["Monthly income", details.monthlyIncome],
+                ["Location", details.location],
               ].map(([label, value]) => (
                 <div key={label} className="flex items-center justify-between border-b border-mist-200 pb-2.5">
                   <span className="text-ink-500">{label}</span>

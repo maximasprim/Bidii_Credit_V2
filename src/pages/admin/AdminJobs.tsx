@@ -6,6 +6,7 @@ import { usePageMeta } from "../../lib/usePageMeta";
 import StatusBadge from "../../components/admin/StatusBadge";
 import { generateJobDraft } from "../../lib/aiJobApi";
 import { getAIProviderStatus, type ATSAIProviderName, type ATSAIProviderStatus } from "../../lib/atsApi";
+import AdminJobDescriptionModal from "./AdminJobDescriptionModal";
 
 type Job = {
   id: string;
@@ -69,6 +70,7 @@ function listToLines(list: string[]): string {
 export default function AdminJobs() {
   usePageMeta("Manage Jobs");
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [jdModalJob, setJdModalJob] = useState<{ id: string; title: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reloadTrigger, setReloadTrigger] = useState(0);
   const [loadedTrigger, setLoadedTrigger] = useState(-1);
@@ -511,6 +513,13 @@ export default function AdminJobs() {
                       </div>
                       <div className="flex shrink-0 gap-2">
                         <button
+                          onClick={() => setJdModalJob({ id: job.id, title: job.title })}
+                          className="flex h-8 w-8 items-center justify-center rounded-full border border-mist-200 text-ink-700 hover:bg-mist-50"
+                          title="Formal Job Description"
+                        >
+                          <Sparkles size={13} />
+                        </button>
+                        <button
                           onClick={() => startEdit(job)}
                           className="flex h-8 w-8 items-center justify-center rounded-full border border-mist-200 text-ink-700 hover:bg-mist-50"
                           title="Edit"
@@ -539,10 +548,16 @@ export default function AdminJobs() {
           </div>
         )}
       </div>
+      {jdModalJob && (
+        <AdminJobDescriptionModal
+          jobId={jdModalJob.id}
+          jobTitle={jdModalJob.title}
+          onClose={() => setJdModalJob(null)}
+        />
+      )}
     </div>
   );
 }
-
 
 
 // import { useEffect, useState } from "react";

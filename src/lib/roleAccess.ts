@@ -22,13 +22,14 @@
  * fetched, never stored, never editable via the settings page.
  */
 
-export type AdminRole = "admin" | "loan_officer" | "hr" | "marketing_manager";
+export type AdminRole = "admin" | "loan_officer" | "hr" | "marketing_manager" | "regional_manager";
 
 export const ADMIN_ROLES: { value: AdminRole; label: string }[] = [
   { value: "admin", label: "Admin" },
   { value: "loan_officer", label: "Loan Officer" },
   { value: "hr", label: "HR" },
   { value: "marketing_manager", label: "Marketing Manager" },
+  { value: "regional_manager", label: "Regional Manager" },
 ];
 
 export function roleLabel(role: string): string {
@@ -46,6 +47,7 @@ export const MENU_REGISTRY: { path: string; label: string }[] = [
   { path: "/admin/ats", label: "Candidate Screening" },
   { path: "/admin/news", label: "News Articles" },
   { path: "/admin/jobs", label: "Job Listings" },
+  { path: "/admin/notifications", label: "Candidate Notifications" },
   { path: "/admin/loan-terms", label: "Products" },
   { path: "/admin/branches", label: "Branches" },
   { path: "/admin/users", label: "Admin Users" },
@@ -58,8 +60,9 @@ const ALL_MENU_PATHS = MENU_REGISTRY.map((m) => m.path);
  *  DEFAULT_MENU_ACCESS in app/services/role_permissions.py. */
 export const DEFAULT_MENU_ACCESS: Record<Exclude<AdminRole, "admin">, string[]> = {
   loan_officer: ["/admin", "/admin/loan-applications", "/admin/loan-terms"],
-  hr: ["/admin", "/admin/career-applications", "/admin/ats", "/admin/jobs"],
+  hr: ["/admin", "/admin/career-applications", "/admin/ats", "/admin/jobs", "/admin/notifications"],
   marketing_manager: ["/admin", "/admin/contacts", "/admin/news", "/admin/jobs"],
+  regional_manager: ["/admin", "/admin/loan-applications", "/admin/loan-terms"],
 };
 
 /**
