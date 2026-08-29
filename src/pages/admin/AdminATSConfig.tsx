@@ -615,11 +615,11 @@ function CriterionForm({
         />
         {value.match_keywords.length === 0 ? (
           <span className="text-amber-600">
-            No keywords yet — this criterion will never match any applicant until you add at least one.
+            No keywords yet - this criterion will never match any applicant until you add at least one.
           </span>
         ) : value.match_keywords.length === 1 ? (
           <span className="text-ink-400">
-            Matching is literal, not stemmed — one keyword misses variants like plurals or synonyms. Add a few
+            Matching is literal, not stemmed - one keyword misses variants like plurals or synonyms. Add a few
             (e.g. "manage", "managed", "management") to cover how applicants actually phrase this.
           </span>
         ) : null}

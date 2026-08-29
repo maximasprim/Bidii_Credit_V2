@@ -120,7 +120,7 @@ export default function AdminNotifications() {
       </div>
       <p className="mb-6 text-sm text-ink-500">
         Configure reusable email templates, and optionally have one sent automatically whenever a candidate's
-        application moves into a given stage. You can also send any template — or a fully custom message — to a
+        application moves into a given stage. You can also send any template - or a fully custom message - to a
         specific candidate at any time from their application or screening detail page.
       </p>
 
@@ -130,7 +130,7 @@ export default function AdminNotifications() {
       ) : (
         <div className="flex flex-col gap-8">
           <section>
-            <h2 className="mb-3 text-sm font-semibold text-ink-900">Automation — send automatically on status change</h2>
+            <h2 className="mb-3 text-sm font-semibold text-ink-900">Automation - send automatically on status change</h2>
             <div className="overflow-hidden rounded-xl border border-mist-200">
               {AUTOMATABLE_TRIGGERS.map((trigger, i) => {
                 const rule = rules.find((r) => r.trigger === trigger);
@@ -203,13 +203,13 @@ export default function AdminNotifications() {
                 <input
                   value={createForm.subject}
                   onChange={(e) => setCreateForm({ ...createForm, subject: e.target.value })}
-                  placeholder="Subject — supports {{candidate_name}}, {{job_title}}, {{company_name}}, {{status}}"
+                  placeholder="Subject - supports {{candidate_name}}, {{job_title}}, {{company_name}}, {{status}}"
                   className="mt-3 w-full rounded-lg border border-mist-200 px-3 py-2 text-sm"
                 />
                 <textarea
                   value={createForm.body}
                   onChange={(e) => setCreateForm({ ...createForm, body: e.target.value })}
-                  placeholder="Body — same placeholders supported"
+                  placeholder="Body - same placeholders supported"
                   rows={5}
                   className="mt-3 w-full rounded-lg border border-mist-200 px-3 py-2 text-sm"
                 />
@@ -326,7 +326,7 @@ export default function AdminNotifications() {
                 )
               )}
               {templates.length === 0 && !showCreateForm && (
-                <p className="text-sm text-ink-400">No templates yet — create one to get started.</p>
+                <p className="text-sm text-ink-400">No templates yet - create one to get started.</p>
               )}
             </div>
           </section>

@@ -52,7 +52,7 @@ export default function AdminLayout() {
   const allowedMenus = resolveAllowedMenus(role, fetchedAllowedMenus);
 
   // Only enforced once we confidently know the role (see resolveAllowedMenus)
-  // — if the role can't be read for any reason, this is skipped rather than
+  // - if the role can't be read for any reason, this is skipped rather than
   // risking a redirect loop or locking someone out on a technicality.
   if (role && !pathAllowed(allowedMenus, location.pathname)) {
     return <Navigate to="/admin" replace />;

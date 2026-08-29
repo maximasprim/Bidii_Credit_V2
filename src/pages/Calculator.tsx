@@ -973,7 +973,7 @@ function CheckOffCalculatorBody({
         <div className="mx-auto mt-6 max-w-2xl px-5">
           <div className="flex items-center gap-2.5 rounded-xl border border-mist-200 bg-mist-50 px-4 py-3 text-xs text-ink-500">
             <Info size={14} className="shrink-0" />
-            Showing standard rates — we couldn't reach the server for the latest terms.
+            Showing standard rates - we couldn't reach the server for the latest terms.
           </div>
         </div>
       )}
@@ -1111,7 +1111,7 @@ function CheckOffCalculatorBody({
             </div>
 
             <div className="mb-6">
-              <label className="mb-1.5 block text-sm text-ink-500">Retirement date (optional — caps your eligible term)</label>
+              <label className="mb-1.5 block text-sm text-ink-500">Retirement date (optional - caps your eligible term)</label>
               <input
                 type="date"
                 value={retirementDate}

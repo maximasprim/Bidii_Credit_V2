@@ -51,7 +51,7 @@ export default function NotificationBell() {
         setItems((prev) => prev.map((i) => (i.id === n.id ? { ...i, is_read: true } : i)));
         setUnreadCount((c) => Math.max(0, c - 1));
       } catch {
-        // non-critical — worst case it stays marked unread until next load
+        // non-critical - worst case it stays marked unread until next load
       }
     }
     setOpen(false);

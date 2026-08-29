@@ -96,13 +96,13 @@ export default function AdminSendNotificationModal({
                 >
                   {sentJustNow.status === "sent" && "Sent."}
                   {sentJustNow.status === "skipped_not_configured" &&
-                    "Not sent — no SMTP server is configured on the backend yet."}
+                    "Not sent - no SMTP server is configured on the backend yet."}
                   {sentJustNow.status === "failed" && `Failed to send: ${sentJustNow.error_message}`}
                 </p>
               )}
 
               <label className="flex flex-col gap-1 text-xs text-ink-500">
-                Template (optional — pre-fills subject & body below, still editable)
+                Template (optional - pre-fills subject & body below, still editable)
                 <select
                   value={templateId}
                   onChange={(e) => pickTemplate(e.target.value)}

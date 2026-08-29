@@ -235,7 +235,7 @@ export default function AdminJobDescriptionModal({
                   <p className="text-xs font-medium text-ink-700">
                     Key Responsibilities{" "}
                     <span className={pctTotal === 100 ? "text-emerald-600" : "text-amber-600"}>
-                      (% of time totals {pctTotal}{pctTotal !== 100 ? " — should total 100" : ""})
+                      (% of time totals {pctTotal}{pctTotal !== 100 ? " - should total 100" : ""})
                     </span>
                   </p>
                   <button
@@ -287,7 +287,7 @@ export default function AdminJobDescriptionModal({
                     </div>
                   ))}
                   {responsibilities.length === 0 && (
-                    <p className="text-xs text-ink-400">No responsibilities yet — generate with AI or add one.</p>
+                    <p className="text-xs text-ink-400">No responsibilities yet - generate with AI or add one.</p>
                   )}
                 </div>
               </div>
@@ -351,7 +351,7 @@ export default function AdminJobDescriptionModal({
 
               <p className="text-xs text-ink-400">
                 The Performance and Behavioral Competencies section and signature block are fixed company format and
-                aren't editable here — they're the same on every job's JD.
+                aren't editable here - they're the same on every job's JD.
               </p>
             </div>
           )}

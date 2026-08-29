@@ -197,7 +197,7 @@ export default function AdminLoanApplications() {
                     <p className="text-xs text-ink-500">{l.phone}</p>
                   </td>
                   <td className="px-4 py-3">
-                    <p className="text-xs text-ink-500">{l.location || "—"}</p>
+                    <p className="text-xs text-ink-500">{l.location || "-"}</p>
                     {canAssign ? (
                       <select
                         value={l.assigned_branch_id ?? ""}
