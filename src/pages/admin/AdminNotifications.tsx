@@ -58,10 +58,10 @@ export default function AdminNotifications() {
     setCreating(true);
     setError(null);
     try {
-      await createNotificationTemplate(createForm);
+      const res = await createNotificationTemplate(createForm);
+      setTemplates((prev) => [res.data, ...prev]);
       setCreateForm(emptyForm);
       setShowCreateForm(false);
-      load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't create template.");
     } finally {
@@ -77,9 +77,9 @@ export default function AdminNotifications() {
   async function saveEdit(id: string) {
     setError(null);
     try {
-      await updateNotificationTemplate(id, editForm);
+      const res = await updateNotificationTemplate(id, editForm);
+      setTemplates((prev) => prev.map((t) => (t.id === id ? res.data : t)));
       setEditingId(null);
-      load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't save template.");
     }
@@ -90,7 +90,7 @@ export default function AdminNotifications() {
     setError(null);
     try {
       await deleteNotificationTemplate(id);
-      load();
+      setTemplates((prev) => prev.filter((t) => t.id !== id));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't delete template.");
     }
@@ -100,11 +100,11 @@ export default function AdminNotifications() {
     const current = rules.find((r) => r.trigger === trigger);
     setError(null);
     try {
-      await updateAutomationRule(trigger, {
+      const updated = await updateAutomationRule(trigger, {
         is_enabled: patch.is_enabled ?? current?.is_enabled ?? false,
         template_id: patch.template_id !== undefined ? patch.template_id : current?.template_id ?? null,
       });
-      load();
+      setRules((prev) => prev.map((r) => (r.trigger === trigger ? updated : r)));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't update automation rule.");
     }
@@ -113,7 +113,7 @@ export default function AdminNotifications() {
   const activeTemplates = templates.filter((t) => t.is_active);
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto max-w-7xl px-0 py-0">
       <div className="mb-6 flex items-center gap-2">
         <Mail size={20} className="text-brand-600" />
         <h1 className="font-display text-xl font-bold text-ink-900">Candidate Notifications</h1>
@@ -173,7 +173,7 @@ export default function AdminNotifications() {
               <h2 className="text-sm font-semibold text-ink-900">Templates</h2>
               <button
                 onClick={() => setShowCreateForm((v) => !v)}
-                className="flex items-center gap-1.5 rounded-lg bg-ink-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
+                className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
               >
                 <Plus size={13} /> New template
               </button>

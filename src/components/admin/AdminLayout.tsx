@@ -31,7 +31,7 @@ const tabs = [
   { to: "/admin/jobs", label: "Job Listings", icon: Briefcase },
   { to: "/admin/ats", label: "Candidate Screening", icon: ClipboardCheck },
   { to: "/admin/career-applications", label: "Career Applications", icon: Briefcase },
-  { to: "/admin/notifications", label: "Candidate Notifications", icon: Mail },
+  { to: "/admin/notifications", label: "Career Notifications", icon: Mail },
   { to: "/admin/news", label: "News Articles", icon: Newspaper },
   { to: "/admin/loan-terms", label: "Loan Products", icon: BadgeDollarSign },
   { to: "/admin/branches", label: "Branches", icon: Building2 },
