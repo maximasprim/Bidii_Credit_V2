@@ -47,7 +47,6 @@ export default function AdminRolePermissions() {
   function toggle(role: string, path: string) {
     setSelections((prev) => {
       const next = new Set(prev[role] ?? []);
-      if (path === "/admin") return prev; // Overview is always on - see the save-time guarantee below
       if (next.has(path)) next.delete(path);
       else next.add(path);
       return { ...prev, [role]: next };
@@ -135,21 +134,18 @@ export default function AdminRolePermissions() {
                 <tr key={menu.path}>
                   <td className="px-3 py-2.5 font-semibold" style={{ color: "var(--color-ink-900)" }}>
                     {menu.label}
-                    {menu.path === "/admin" && (
-                      <span className="ml-1.5 text-xs font-normal text-ink-500">(always on)</span>
-                    )}
                     {menu.path === "/admin/role-permissions" && (
                       <span className="ml-1.5 text-xs font-normal text-ink-500">(admin only, not configurable)</span>
                     )}
                   </td>
                   {data.items.map((item) => {
                     const checked = selections[item.role]?.has(menu.path) ?? false;
-                    const disabled = menu.path === "/admin" || menu.path === "/admin/role-permissions";
+                    const disabled = menu.path === "/admin/role-permissions";
                     return (
                       <td key={item.role} className="px-3 py-2.5 text-center">
                         <input
                           type="checkbox"
-                          checked={menu.path === "/admin" ? true : checked}
+                          checked={checked}
                           disabled={disabled}
                           onChange={() => toggle(item.role, menu.path)}
                           className="h-4 w-4 accent-[var(--color-ember-500)] disabled:opacity-50"

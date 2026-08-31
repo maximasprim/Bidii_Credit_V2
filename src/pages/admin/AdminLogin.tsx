@@ -3,20 +3,29 @@ import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { AlertCircle, Home, Eye, EyeOff } from "lucide-react";
 import { useAdminAuth } from "../../lib/AdminAuthContext";
 import { usePageMeta } from "../../lib/usePageMeta";
+import { getCurrentAdminRole } from "../../lib/adminApi";
+import { resolveAllowedMenus, getLandingPath } from "../../lib/roleAccess";
 import loginBg from "../../../public/Bidii_Credit_Logo.png";
 
-/** Only ever redirect back to a path on this site (never an external URL). */
-function safeRedirectTarget(next: string | null): string {
+/**
+ * Only ever redirect back to a path on this site (never an external URL).
+ * With no explicit ?next=, lands on this role's own first allowed page
+ * rather than a hardcoded "/admin" - Overview ("/admin") is itself a
+ * configurable, sometimes-hidden menu entry now (see MENU_REGISTRY), so a
+ * role without it would otherwise land somewhere it immediately gets
+ * bounced away from by AdminLayout's own access guard.
+ */
+function safeRedirectTarget(next: string | null, role: string | null): string {
   if (next && next.startsWith("/") && !next.startsWith("//")) return next;
-  return "/admin";
+  return getLandingPath(resolveAllowedMenus(role, null));
 }
 
 export default function AdminLogin() {
   usePageMeta("Admin Login");
-  const { isAuthenticated, login } = useAdminAuth();
+  const { isAuthenticated, role, login } = useAdminAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectTo = safeRedirectTarget(searchParams.get("next"));
+  const redirectTo = safeRedirectTarget(searchParams.get("next"), role);
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -34,7 +43,11 @@ export default function AdminLogin() {
     setIsSubmitting(true);
     try {
       await login(username, password);
-      navigate(redirectTo, { replace: true });
+      // Recomputed post-login (rather than reusing the `redirectTo` closed
+      // over above) since that one was necessarily computed before we knew
+      // this account's actual role.
+      const next = safeRedirectTarget(searchParams.get("next"), getCurrentAdminRole());
+      navigate(next, { replace: true });
     } catch {
       setError("Invalid username or password.");
     } finally {
@@ -139,26 +152,34 @@ export default function AdminLogin() {
   );
 }
 
-
 // import { useState } from "react";
-// import { Link, Navigate, useNavigate } from "react-router-dom";
-// import { AlertCircle, Home } from "lucide-react";
+// import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
+// import { AlertCircle, Home, Eye, EyeOff } from "lucide-react";
 // import { useAdminAuth } from "../../lib/AdminAuthContext";
 // import { usePageMeta } from "../../lib/usePageMeta";
 // import loginBg from "../../../public/Bidii_Credit_Logo.png";
+
+// /** Only ever redirect back to a path on this site (never an external URL). */
+// function safeRedirectTarget(next: string | null): string {
+//   if (next && next.startsWith("/") && !next.startsWith("//")) return next;
+//   return "/admin";
+// }
 
 // export default function AdminLogin() {
 //   usePageMeta("Admin Login");
 //   const { isAuthenticated, login } = useAdminAuth();
 //   const navigate = useNavigate();
+//   const [searchParams] = useSearchParams();
+//   const redirectTo = safeRedirectTarget(searchParams.get("next"));
 
 //   const [username, setUsername] = useState("");
 //   const [password, setPassword] = useState("");
+//   const [showPassword, setShowPassword] = useState(false);
 //   const [error, setError] = useState<string | null>(null);
 //   const [isSubmitting, setIsSubmitting] = useState(false);
 
 //   if (isAuthenticated) {
-//     return <Navigate to="/admin" replace />;
+//     return <Navigate to={redirectTo} replace />;
 //   }
 
 //   async function onSubmit(e: React.FormEvent) {
@@ -167,7 +188,7 @@ export default function AdminLogin() {
 //     setIsSubmitting(true);
 //     try {
 //       await login(username, password);
-//       navigate("/admin", { replace: true });
+//       navigate(redirectTo, { replace: true });
 //     } catch {
 //       setError("Invalid username or password.");
 //     } finally {
@@ -181,7 +202,7 @@ export default function AdminLogin() {
 //         src={loginBg}
 //         alt=""
 //         aria-hidden="true"
-//         className="absolute inset-0 h-full w-full scale-110 object-cover blur-md"
+//         className="absolute inset-0 h-full w-full scale-110 object-cover blur-xs"
 //       />
 //       <div
 //         className="absolute inset-0"
@@ -216,7 +237,7 @@ export default function AdminLogin() {
 //               className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm focus:outline-none"
 //             />
 //           </div>
-//           <div>
+//           {/* <div>
 //             <label className="mb-1.5 block text-sm text-ink-500">Password</label>
 //             <input
 //               type="password"
@@ -226,6 +247,28 @@ export default function AdminLogin() {
 //               required
 //               className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm focus:outline-none"
 //             />
+//           </div> */}
+//           <div>
+//             <label className="mb-1.5 block text-sm text-ink-500">Password</label>
+//             <div className="relative">
+//               <input
+//                 type={showPassword ? "text" : "password"}
+//                 value={password}
+//                 onChange={(e) => setPassword(e.target.value)}
+//                 autoComplete="current-password"
+//                 required
+//                 className="w-full rounded-xl border border-mist-200 px-4 py-2.5 pr-10 text-sm focus:outline-none"
+//               />
+//               <button
+//                 type="button"
+//                 onClick={() => setShowPassword((v) => !v)}
+//                 tabIndex={-1}
+//                 aria-label={showPassword ? "Hide password" : "Show password"}
+//                 className="absolute inset-y-0 right-0 flex items-center px-3 text-ink-500 hover:text-ink-700"
+//               >
+//                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+//               </button>
+//             </div>
 //           </div>
 //           <button
 //             type="submit"
@@ -236,16 +279,17 @@ export default function AdminLogin() {
 //             {isSubmitting ? "Signing in…" : "Sign In"}
 //           </button>
 //           <div className="flex items-center justify-center ">
-//           <Link
-//             to="/"
-//             className="inline-flex items-center gap-1.5 text-sm font-medium text-orange-500 transition-colors hover:text-orange-400 hover:underline"
-//           >
-//             <Home size={14} />
-//             Back to site
-//           </Link>
+//             <Link
+//               to="/"
+//               className="inline-flex items-center gap-1.5 text-sm font-medium text-orange-500 transition-colors hover:text-orange-400 hover:underline"
+//             >
+//               <Home size={14} />
+//               Back to site
+//             </Link>
 //           </div>
 //         </form>
 //       </div>
 //     </div>
 //   );
 // }
+
