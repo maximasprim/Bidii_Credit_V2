@@ -469,7 +469,7 @@ export default function Careers() {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm text-ink-500">Why you're a fit</label>
+                <label className="mb-1.5 block text-sm text-ink-500">Why you're a fit ( Cover Letter )</label>
                 <textarea
                   {...register("coverNote")}
                   rows={4}
