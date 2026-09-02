@@ -189,7 +189,7 @@ export default function Footer() {
         <div className="mt-14 flex flex-col gap-4 border-t border-white/10 pt-8 text-xs text-white/50 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2">
             <ShieldCheck size={16} style={{ color: "var(--color-ember-500)" }} />
-            Licensed by the Central Bank of Kenya.
+            Licensed by CBK as a Digital Credit Provider (DCP).
           </div>
           <p>© {new Date().getFullYear()} Bidii Credit Kenya. All rights reserved.</p>
         </div>

@@ -34,14 +34,14 @@ export default function Hero() {
             className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-medium text-white/80"
           >
             <ShieldCheck size={14} style={{ color: "var(--color-ember-400)" }} />
-            Licensed &amp; regulated microfinance institution
+            Licensed by CBK as a Digital Credit Provider (DCP).
           </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.05 }}
-            className="font-display text-4xl font-extrabold leading-[1.08] text-white sm:text-5xl lg:text-[3.4rem]"
+            className="font-display text-3xl font-extrabold leading-[1.08] text-white sm:text-5xl lg:text-[3.4rem]"
           >
             Financing for businesses that show up{" "}
             <span style={{ color: "var(--color-ember-400)" }}>every day</span>.
