@@ -14,6 +14,7 @@ export type BranchInput = {
   lng: number;
   display_order: number;
   is_active: boolean;
+  county?: string | null;
 };
 
 export function createBranch(payload: BranchInput) {

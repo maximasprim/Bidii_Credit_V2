@@ -12,6 +12,7 @@ export type Branch = {
   lng: number;
   display_order: number;
   is_active: boolean;
+  county?: string | null;
 };
 
 /**
