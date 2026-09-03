@@ -11,6 +11,7 @@ type AdminUser = {
   id: string;
   username: string;
   role: AdminRole;
+  email: string | null;
   is_active: boolean;
   branch_id: string | null;
   managed_branch_ids: string[] | null;
@@ -31,6 +32,7 @@ export default function AdminUsers() {
   const currentId = getCurrentAdminId();
 
   const [newUsername, setNewUsername] = useState("");
+  const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [newRole, setNewRole] = useState<AdminRole>("admin");
@@ -43,6 +45,7 @@ export default function AdminUsers() {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editUsername, setEditUsername] = useState("");
+  const [editEmail, setEditEmail] = useState("");
   const [editPassword, setEditPassword] = useState("");
   const [showEditPassword, setShowEditPassword] = useState(false);
   const [editRole, setEditRole] = useState<AdminRole>("admin");
@@ -87,12 +90,14 @@ export default function AdminUsers() {
     try {
       await adminPost("/api/admin/users", {
         username: newUsername,
+        email: newEmail || null,
         password: newPassword,
         role: newRole,
         branch_id: newRole === "loan_officer" ? newBranchId || null : null,
         managed_branch_ids: newRole === "branch_office_admin" ? newManagedBranchIds : null,
       });
       setNewUsername("");
+      setNewEmail("");
       setNewPassword("");
       setNewRole("admin");
       setNewBranchId("");
@@ -108,6 +113,7 @@ export default function AdminUsers() {
   function startEdit(user: AdminUser) {
     setEditingId(user.id);
     setEditUsername(user.username);
+    setEditEmail(user.email ?? "");
     setEditPassword("");
     setEditRole(user.role);
     setEditBranchId(user.branch_id ?? "");
@@ -124,7 +130,7 @@ export default function AdminUsers() {
     setSavingEdit(true);
     setEditError(null);
     try {
-      const body: Record<string, unknown> = { username: editUsername, role: editRole };
+      const body: Record<string, unknown> = { username: editUsername,email: editEmail || null, role: editRole };
       if (editPassword) body.password = editPassword;
       if (editRole === "loan_officer") body.branch_id = editBranchId || null;
       if (editRole === "branch_office_admin") body.managed_branch_ids = editManagedBranchIds;
@@ -173,6 +179,16 @@ export default function AdminUsers() {
               onChange={(e) => setNewUsername(e.target.value)}
               minLength={3}
               required
+              className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm focus:outline-none"
+            />
+          </div>
+           <div className="min-w-[200px] flex-1">
+            <label className="mb-1.5 block text-sm text-ink-500">Work email</label>
+            <input
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="name@bidiicreditkenya.co.ke"
               className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm focus:outline-none"
             />
           </div>
@@ -298,6 +314,13 @@ export default function AdminUsers() {
                               onChange={(e) => setEditUsername(e.target.value)}
                               className="mb-1.5 w-full rounded-lg border border-mist-200 px-3 py-1.5 text-sm focus:outline-none"
                               placeholder="Username"
+                            />
+                             <input
+                              type="email"
+                              value={editEmail}
+                              onChange={(e) => setEditEmail(e.target.value)}
+                              className="mb-1.5 w-full rounded-lg border border-mist-200 px-3 py-1.5 text-sm focus:outline-none"
+                              placeholder="Work email (optional)"
                             />
                             {/* <input
                               type="password"
