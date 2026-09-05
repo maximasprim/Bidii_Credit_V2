@@ -481,7 +481,7 @@ export const services: Service[] = [
   },
 ];
 
-export type DownloadCategory = "Application Forms" | "Product Brochures" | "Statements & Guides" | "Legal & Compliance";
+export type DownloadCategory = "Application Forms" | "Product Brochures" | "Statements & Guides" /**| "Legal & Compliance"**/;
 
 export type DownloadItem = {
   title: string;
@@ -578,7 +578,7 @@ export const articles: Article[] = [
 ];
 
 export const downloads: DownloadItem[] = [
-  { title: "SME Loan Application Pack", category: "Application Forms", fileType: "DOCX", size: "878 KB", description: "Full documentation pack for registered SME facilities, including financial statement templates.", url: "/Downloads/SME Loan Form 2026.pdf" },
+  { title: "SME Loan Application Pack", category: "Application Forms", fileType: "DOCX", size: "878 KB", description: "Full documentation pack for registered SME facilities, including financial statement templates.", url: "/Downloads/Business Loans Brochures.pdf" },
   // { title: "CheckOff Loan Application Form", category: "Application Forms", fileType: "PDF", size: "355 KB", description: "The standard form for Government and Non-government Employees loan applications.", url: "/Downloads/BIDII LAF.pdf" },
   // { title: "Rental Income Loan Application Form", category: "Application Forms", fileType: "PDF", size: "878 KB", description: "Application form for financing landlords and property owners.", url: "/Downloads/SME Loan Form 2026.pdf" },
   // { title: "Salary Advance Consent Form", category: "Application Forms", fileType: "PDF", size: "120 KB", description: "Payroll verification consent required for salary advance applications." },
@@ -586,8 +586,8 @@ export const downloads: DownloadItem[] = [
   // { title: "Asset Finance Brochure", category: "Product Brochures", fileType: "PDF", size: "980 KB", description: "How asset financing works, from valuation to ownership transfer.", url: "/Downloads/SME Loan Form 2026.pdf" },
   // { title: "Logbook Loan Application Form", category: "Application Forms", fileType: "PDF", size: "878 KB", description: "The Standard Application Form for Logbook Loans.", url: "/Downloads/SME Loan Form 2026.pdf" },
   // { title: "Sample Repayment Schedule", category: "Statements & Guides", fileType: "PDF", size: "150 KB", description: "An example month-by-month repayment schedule for a 12-month business loan.", url: "/Downloads/SME Loan Form 2026.pdf" },
-  { title: "First-Time Borrower's Guide", category: "Statements & Guides", fileType: "PDF", size: "620 KB", description: "A short guide to preparing documents and understanding your offer before you apply.", url: "/Downloads/SME Loan Form 2026.pdf" },
-  { title: "Terms and Conditions", category: "Legal & Compliance", fileType: "PDF", size: "410 KB", description: "Standard terms and conditions governing all Bidii Credit loan products.", url: "/Downloads/SME Loan Form 2026.pdf" },
+  { title: "First-Time Borrower's Guide", category: "Statements & Guides", fileType: "PDF", size: "620 KB", description: "A short guide to preparing documents and understanding your offer before you apply.", url: "/Downloads/Business Loans Brochures.pdf" },
+  // { title: "Terms and Conditions", category: "Legal & Compliance", fileType: "PDF", size: "410 KB", description: "Standard terms and conditions governing all Bidii Credit loan products.", url: "/Downloads/Business Loans Brochures.pdf" },
   // { title: "Data Privacy Policy", category: "Legal & Compliance", fileType: "PDF", size: "280 KB", description: "How customer data is collected, used, and protected." },
   // { title: "Complaints Handling Procedure", category: "Legal & Compliance", fileType: "PDF", size: "195 KB", description: "How to raise a complaint and what response times to expect." },
 ];
