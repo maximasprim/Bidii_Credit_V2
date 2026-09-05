@@ -11,7 +11,7 @@ const categories: (DownloadCategory | "All")[] = [
   "Application Forms",
   "Product Brochures",
   "Statements & Guides",
-  "Legal & Compliance",
+  // "Legal & Compliance",
 ];
 
 export default function Downloads() {
