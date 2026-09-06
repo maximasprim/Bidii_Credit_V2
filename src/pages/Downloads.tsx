@@ -48,7 +48,7 @@ export default function Downloads() {
       </PageHero>
 
       <section className="mx-auto max-w-6xl px-5 py-16 lg:px-8 lg:py-20">
-        <div className="mb-10 flex flex-wrap gap-2">
+        <div className="mb-10 flex flex-wrap gap-2 justify-center">
           {categories.map((c) => (
             <button
               key={c}

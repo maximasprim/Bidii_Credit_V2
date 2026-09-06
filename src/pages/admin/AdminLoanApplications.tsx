@@ -211,7 +211,7 @@ export default function AdminLoanApplications() {
                       <p className="font-medium">{l.assigned_branch_name || "Unassigned"}</p>
                     )}
                     {l.branch_assignment_method && (
-                      <span className="text-[10px] uppercase text-ink-400">via {l.branch_assignment_method}</span>
+                      <span className="text-[10px] uppercase text-ink-400"> via {l.branch_assignment_method}</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
