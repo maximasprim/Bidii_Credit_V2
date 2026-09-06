@@ -1,10 +1,16 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-KE">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/Bidii_Credit_Logo.png" />
+
+    <link rel="icon" type="image/png" href="/Main_Favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0B2A4A" />
+    <meta name="theme-color" content="#0B2A4A" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0B1A2E" media="(prefers-color-scheme: dark)" />
+
     <script>
       (function () {
         try {
@@ -14,37 +20,132 @@
         } catch (e) {}
       })();
     </script>
-    <title>Bidii Credit | Financing for Kenyan Businesses That Show Up Every Day</title>
+
+    <!-- Primary SEO -->
+    <title>Bidii Credit Kenya | SME, Business, Logbook & CheckOff Loans</title>
     <meta
       name="description"
-      content="Bidii Credit is a licensed Kenyan financial institution offering business, asset finance, salary advance and SME loans built around how Kenyan entrepreneurs actually work."
+      content="Bidii Credit Limited, licensed by the Central Bank of Kenya, offers fast SME, logbook, mobile, check-off and rental income loans across Kenya."
     />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="author" content="Bidii Credit Limited" />
+    <link rel="canonical" href="https://www.bidiicreditkenya.co.ke/" />
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Bidii Credit Kenya" />
     <meta property="og:title" content="Bidii Credit | Financing for Kenyan Businesses" />
-    <meta property="og:description" content="Licensed, transparent lending for SMEs, entrepreneurs and salaried Kenyans. Apply in minutes, know your repayment before you borrow." />
+    <meta
+      property="og:description"
+      content="Licensed, transparent lending for SMEs, entrepreneurs and salaried Kenyans. Apply in minutes, know your repayment before you borrow."
+    />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.bidiicreditkenya.co.ke/" />
+    <meta property="og:locale" content="en_KE" />
+    <!-- replace with a real 1200x630 social share image hosted on the domain -->
+    <meta property="og:image" content="https://www.bidiicreditkenya.co.ke/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Bidii Credit Kenya - business and salary loans" />
+
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Bidii Credit | Financing for Kenyan Businesses" />
+    <meta
+      name="twitter:description"
+      content="Licensed, transparent lending for SMEs, entrepreneurs and salaried Kenyans. Apply in minutes, know your repayment before you borrow."
+    />
+    <meta name="twitter:image" content="https://www.bidiicreditkenya.co.ke/og-image.jpg" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="canonical" href="https://www.bidiicreditkenya.co.ke/" />
+
+
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "FinancialService",
-        "name": "Bidii Credit",
+        "@id": "https://www.bidiicreditkenya.co.ke/#organization",
+        "name": "Bidii Credit Limited",
+        "alternateName": "Bidii Credit",
         "url": "https://www.bidiicreditkenya.co.ke/",
-        "logo": "https://www.bidiicreditkenya.co.ke/favicon.svg",
-        "description": "Licensed Kenyan microfinance institution offering business loans, asset finance, salary advance, logbook loans, SME loans, and emergency loans.",
+        "logo": "https://www.bidiicreditkenya.co.ke/Bidii_Credit_Logo.png",
+        "image": "https://www.bidiicreditkenya.co.ke/Bidii_Credit_Logo.png",
+        "description": "Bidii Credit is a Kenyan credit provider licensed and regulated by the Central Bank of Kenya (CBK), offering SME loans, business loans, mobile loans, logbook (asset) loans, rental income loans and check-off loans, with transparent terms and fast decisions.",
         "address": {
           "@type": "PostalAddress",
-          "streetAddress": "Bidii House, Moi Avenue",
+          "streetAddress": "Applewood Adams, 3rd Floor - Ngong Road",
           "addressLocality": "Nairobi",
           "addressCountry": "KE"
         },
-        "areaServed": "KE",
-        "sameAs": []
+        "telephone": "+254-709-840000",
+        "email": "info@bidiicreditkenya.co.ke",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "customer service",
+          "telephone": "+254-797-360977",
+          "areaServed": "KE",
+          "availableLanguage": ["English", "Swahili"],
+          "url": "https://wa.me/254797360977"
+        },
+        "hasCredential": {
+          "@type": "EducationalOccupationalCredential",
+          "credentialCategory": "license",
+          "name": "Licensed Digital Credit Provider, regulated by the Central Bank of Kenya (CBK)"
+        },
+        "areaServed": {
+          "@type": "Country",
+          "name": "Kenya"
+        },
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            "opens": "08:00",
+            "closes": "17:00"
+          },
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Saturday"],
+            "opens": "08:00",
+            "closes": "13:00"
+          }
+        ],
+        "sameAs": [
+          "https://www.facebook.com/bidiicredit",
+          "https://www.linkedin.com/company/bidii-credit-kenya",
+          "https://x.com/bidiicredit",
+          "https://www.instagram.com/bidiicreditltd"
+        ],
+        "makesOffer": [
+          {
+            "@type": "Offer",
+            "itemOffered": { "@type": "LoanOrCredit", "name": "SME Loan", "description": "Working capital and growth financing for small and medium enterprises." }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": { "@type": "LoanOrCredit", "name": "Business Loan", "description": "Flexible business financing with transparent repayment terms." }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": { "@type": "LoanOrCredit", "name": "Mobile Loan", "description": "Fast, app-based short-term lending." }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": { "@type": "LoanOrCredit", "name": "Logbook Loan", "description": "Asset-backed financing secured against a vehicle logbook." }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": { "@type": "LoanOrCredit", "name": "Rental Income Loan", "description": "Financing secured against verified rental income." }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": { "@type": "LoanOrCredit", "name": "Check-off Loan", "description": "Salary-deduction financing for employed and salaried Kenyans." }
+          }
+        ]
       }
     </script>
   </head>

@@ -44,7 +44,7 @@ export default function Hero() {
             className="font-display text-3xl font-extrabold leading-[1.08] text-white sm:text-5xl lg:text-[3.4rem]"
           >
             Financing for businesses that show up{" "}
-            <span style={{ color: "var(--color-ember-400)" }}>every day</span>.
+            <span style={{ color: "var(--color-ember-400)" }}>every day</span>
           </motion.h1>
 
           <motion.p
