@@ -5,7 +5,7 @@ import { adminGet, adminPost, adminPatch, adminDelete } from "../../lib/adminApi
 import { usePageMeta } from "../../lib/usePageMeta";
 import StatusBadge from "../../components/admin/StatusBadge";
 import { generateJobDraft } from "../../lib/aiJobApi";
-import { getAIProviderStatus, type ATSAIProviderName, type ATSAIProviderStatus } from "../../lib/atsApi";
+import { getAIProviderStatus, listATSConfigurations, type ATSAIProviderName, type ATSAIProviderStatus } from "../../lib/atsApi";
 import AdminJobDescriptionModal from "./AdminJobDescriptionModal";
 
 type Job = {
@@ -90,11 +90,23 @@ export default function AdminJobs() {
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
 
+  // Job IDs that already have an ATS configuration (and possibly criteria)
+  // set up - used only to warn before a delete that would also erase that
+  // setup. Not kept in sync in real time; a stale/missing entry just means
+  // a slightly less specific warning, never a blocked or broken delete.
+  const [jobsWithATSConfig, setJobsWithATSConfig] = useState<Set<string>>(new Set());
+  
   useEffect(() => {
     getAIProviderStatus()
       .then((data) => setProviderStatus(data.providers))
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    listATSConfigurations()
+      .then((data) => setJobsWithATSConfig(new Set(data.items.map((c) => c.job_id))))
+      .catch(() => {});
+  }, [reloadTrigger]);
 
   useEffect(() => {
     let cancelled = false;
@@ -219,7 +231,10 @@ export default function AdminJobs() {
       alert(`Can't delete - ${job.application_count} application(s) are on file for this posting. Close it instead.`);
       return;
     }
-    if (!confirm("Delete this job posting? This can't be undone.")) return;
+    const warning = jobsWithATSConfig.has(job.id)
+      ? "Delete this job posting? It also has ATS screening criteria set up - those will be deleted too. This can't be undone."
+      : "Delete this job posting? This can't be undone.";
+    if (!confirm(warning)) return;
     try {
       await adminDelete(`/api/admin/jobs/${job.id}`);
       reload();
