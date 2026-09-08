@@ -7,14 +7,13 @@ export default function PlaceholderPage({ title }: { title: string }) {
   return (
     <section className="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center px-5 py-24 text-center">
       <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--color-ember-500)" }}>
-        Coming soon
+        404
       </p>
       <h1 className="mt-3 font-display text-3xl font-extrabold" style={{ color: "var(--color-ink-900)" }}>
         {title}
       </h1>
       <p className="mt-4 max-w-md text-sm leading-relaxed text-ink-500">
-        This page is part of the full Bidii Credit rebuild and follows the same design system as the
-        home page. It's next in line to be fleshed out.
+        This page is currently unavailable but be on the lookout for updates.
       </p>
       <Link
         to="/"
