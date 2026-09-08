@@ -6,7 +6,7 @@ export default function PlaceholderPage({ title }: { title: string }) {
   usePageMeta(title);
   return (
     <section className="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center px-5 py-24 text-center">
-      <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--color-ember-500)" }}>
+      <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--color-red-500)" }}>
         404
       </p>
       <h1 className="mt-3 font-display text-3xl font-extrabold" style={{ color: "var(--color-ink-900)" }}>
