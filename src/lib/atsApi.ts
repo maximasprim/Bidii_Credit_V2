@@ -20,6 +20,13 @@ export type ATSCriterionCategory =
 export type ATSRecommendation = "recommended" | "review" | "not_recommended";
 export type ATSEvaluationMode = "weighted" | "ai";
 export type ATSAIProviderName = "openai" | "gemini";
+export type ATSStrictness = "strict" | "balanced" | "lenient";
+
+export const ATS_STRICTNESS_LABELS: Record<ATSStrictness, string> = {
+  strict: "Strict",
+  balanced: "Balanced",
+  lenient: "Lenient",
+};
 
 export const ATS_CATEGORY_LABELS: Record<ATSCriterionCategory, string> = {
   qualification: "Qualification",
@@ -71,6 +78,7 @@ export type ATSConfiguration = {
   evaluation_mode: ATSEvaluationMode;
   ai_provider: ATSAIProviderName | null;
   ai_model: string | null;
+  strictness: ATSStrictness;
 };
 
 export type ATSConfigurationWithJob = ATSConfiguration & {
@@ -202,6 +210,7 @@ export function createJobATSConfiguration(
     evaluation_mode?: ATSEvaluationMode;
     ai_provider?: ATSAIProviderName | null;
     ai_model?: string | null;
+    strictness?: ATSStrictness;
   }
 ) {
   return adminPost<{ data: ATSConfiguration }>(`/api/admin/ats/config/jobs/${jobId}`, payload);
@@ -217,6 +226,7 @@ export function updateATSConfiguration(
     evaluation_mode: ATSEvaluationMode;
     ai_provider: ATSAIProviderName | null;
     ai_model: string | null;
+    strictness: ATSStrictness;
   }>
 ) {
   return adminPatch<{ data: ATSConfiguration }>(`/api/admin/ats/config/${configId}`, payload);

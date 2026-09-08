@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { AlertCircle, ArrowLeft, Plus, Trash2, Pencil, Check, X, Sparkles } from "lucide-react";
 import { adminGet } from "../../lib/adminApi";
 import { usePageMeta } from "../../lib/usePageMeta";
+import StrictnessSlider from "../../components/admin/ats/StrictnessSlider";
 import {
   ATS_CATEGORY_LABELS,
   addATSCriterion,
@@ -367,6 +368,32 @@ export default function AdminATSConfig() {
                 </button>
               ))}
             </div>
+
+            <label className="flex flex-col gap-1.5 text-xs text-ink-500">
+              Strictness
+              <StrictnessSlider
+                value={config.strictness}
+                disabled={savingSettings}
+                onChange={(level) => saveSettings({ strictness: level })}
+              />
+              <span className="mt-1 font-normal normal-case text-ink-400">
+                {config.evaluation_mode === "ai" ? (
+                  <>
+                    Controls how much credit the AI gives a candidate with partial (not clear-cut) evidence for a
+                    criterion, and how a disagreement between its two independent evaluation passes is resolved.
+                    Strict gives partial evidence no credit; Balanced gives it half credit; Lenient gives it full
+                    credit.
+                  </>
+                ) : (
+                  <>
+                    Controls how many of a criterion's alternative keywords a candidate needs to match. Lenient: any
+                    one keyword is enough. Balanced: credit scales with how many are found (2 of 4 = 50%). Strict:
+                    every keyword must be found.
+                  </>
+                )}
+                {" "}Applies whichever engine is selected above - switching modes keeps this same setting.
+              </span>
+            </label>
 
             {config.evaluation_mode === "ai" && (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
