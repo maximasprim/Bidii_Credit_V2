@@ -244,6 +244,27 @@ export default function AdminATSCandidate() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-6 lg:col-span-2">
+          {/* Location/date-available/desired-pay are optional and can be
+              null on applications submitted before these fields existed. */}
+          {(application.location || application.date_available || application.desired_pay) && (
+            <Card title="Candidate Info">
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Location</p>
+                  <p className="mt-1 text-sm text-ink-700">{application.location ?? "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Date available</p>
+                  <p className="mt-1 text-sm text-ink-700">{application.date_available ?? "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Desired pay</p>
+                  <p className="mt-1 text-sm text-ink-700">{application.desired_pay ?? "—"}</p>
+                </div>
+              </div>
+            </Card>
+          )}
+          
           {/* Cover note */}
           <Card title="Cover Note">
             <p className="whitespace-pre-wrap text-sm text-ink-700">{application.cover_note}</p>

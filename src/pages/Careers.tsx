@@ -35,12 +35,18 @@ const applicationSchema = z.object({
   fullName: z.string().min(2, "Enter your full name"),
   email: z.string().email("Enter a valid email address"),
   phone: z.string().min(10, "Enter a valid phone number"),
+  location: z.string().min(2, "Enter your current location"),
+  dateAvailable: z.string().min(1, "Let us know when you can start"),
+  desiredPay: z.string().min(1, "Enter your expected pay"),
   coverNote: z.string().min(10, "Say a little about why you're a fit"),
 });
 
 type ApplicationForm = z.infer<typeof applicationSchema>;
 
 const GENERAL_APPLICATION = "general";
+
+/** "2026-09-08" - used as the min for the Date Available input so applicants can't pick a past date. */
+const TODAY_ISO = new Date().toISOString().slice(0, 10);
 
 export default function Careers() {
   usePageMeta("Careers");
@@ -138,6 +144,9 @@ export default function Careers() {
     formData.append("phone", values.phone);
     formData.append("role", isGeneral ? "General application" : job?.title ?? "");
     formData.append("cover_note", values.coverNote);
+    formData.append("location", values.location);
+    formData.append("date_available", values.dateAvailable);
+    formData.append("desired_pay", values.desiredPay);
     if (!isGeneral && job) formData.append("job_id", job.id);
     formData.append("cv", cvFile);
 
@@ -447,6 +456,38 @@ export default function Careers() {
                 <label className="mb-1.5 block text-sm text-ink-500">Email address</label>
                 <input {...register("email")} className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm focus:outline-none" />
                 {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
+              </div>
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-sm text-ink-500">Current location</label>
+                  <input
+                    {...register("location")}
+                    placeholder="e.g. Nairobi"
+                    className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm focus:outline-none"
+                  />
+                  {errors.location && <p className="mt-1 text-xs text-red-500">{errors.location.message}</p>}
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm text-ink-500">Date available</label>
+                  <input
+                    type="date"
+                    min={TODAY_ISO}
+                    {...register("dateAvailable")}
+                    className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm text-ink-700 focus:outline-none"
+                  />
+                  {errors.dateAvailable && <p className="mt-1 text-xs text-red-500">{errors.dateAvailable.message}</p>}
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm text-ink-500">Desired pay (KES)</label>
+                <input
+                  {...register("desiredPay")}
+                  placeholder="e.g. 45,000 per month or Negotiable"
+                  className="w-full rounded-xl border border-mist-200 px-4 py-2.5 text-sm focus:outline-none"
+                />
+                {errors.desiredPay && <p className="mt-1 text-xs text-red-500">{errors.desiredPay.message}</p>}
               </div>
 
               <div>

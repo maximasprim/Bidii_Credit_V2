@@ -13,6 +13,9 @@ type CareerApplication = {
   phone: string;
   role: string;
   cover_note: string;
+  location: string | null;
+  date_available: string | null;
+  desired_pay: string | null;
   cv_original_filename: string;
   status: string;
   created_at: string;
@@ -158,7 +161,7 @@ export default function AdminCareerApplications() {
                       className="text-xs font-semibold hover:underline"
                       style={{ color: "var(--color-ember-500)" }}
                     >
-                      View Cover Letter
+                      View Details
                     </button>
                   </td>
                   <td className="px-4 py-3">
@@ -203,7 +206,7 @@ export default function AdminCareerApplications() {
                   className="text-base font-semibold"
                   style={{ color: "var(--color-ink-900)" }}
                 >
-                  Cover Letter
+                  Application Details
                 </h2>
                 <p className="mt-0.5 text-xs text-ink-500">
                   {selectedCoverLetter.full_name} · {selectedCoverLetter.role}
@@ -220,6 +223,25 @@ export default function AdminCareerApplications() {
             </div>
 
             <div className="max-h-[70vh] overflow-y-auto px-5 py-5">
+              {/* Location/date-available/desired-pay are optional and can be
+                  null on older applications submitted before these fields
+                  existed - each is only rendered when present. */}
+              {(selectedCoverLetter.location || selectedCoverLetter.date_available || selectedCoverLetter.desired_pay) && (
+                <div className="mb-5 grid gap-3 rounded-xl border border-mist-200 bg-mist-50 p-4 text-xs sm:grid-cols-3">
+                  <div>
+                    <p className="font-semibold uppercase tracking-wide text-ink-400">Location</p>
+                    <p className="mt-1 text-sm text-ink-700">{selectedCoverLetter.location ?? "—"}</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold uppercase tracking-wide text-ink-400">Date available</p>
+                    <p className="mt-1 text-sm text-ink-700">{selectedCoverLetter.date_available ?? "—"}</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold uppercase tracking-wide text-ink-400">Desired pay</p>
+                    <p className="mt-1 text-sm text-ink-700">{selectedCoverLetter.desired_pay ?? "—"}</p>
+                  </div>
+                </div>
+              )}
               <div className="whitespace-pre-wrap text-sm leading-6 text-ink-700">
                 {selectedCoverLetter.cover_note}
               </div>

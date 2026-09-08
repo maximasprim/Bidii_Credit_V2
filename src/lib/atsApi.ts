@@ -169,6 +169,9 @@ export type ATSVettingDetail = {
     phone: string;
     role: string;
     cover_note: string;
+    location: string | null;
+    date_available: string | null;
+    desired_pay: string | null;
     cv_original_filename: string;
     status: string;
     created_at: string;
