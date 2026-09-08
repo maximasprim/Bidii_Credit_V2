@@ -37,6 +37,7 @@ export default function AdminATS() {
   const [sortBy, setSortBy] = useState<"date" | "score">("score");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
+  const [refrestTick, setRefreshTick] = useState(0);
 
   const [items, setItems] = useState<CareerApplicationWithATS[]>([]);
   const [meta, setMeta] = useState<PageMeta | null>(null);
@@ -52,7 +53,7 @@ export default function AdminATS() {
       .catch(() => {});
   }, []);
 
-  const requestKey = JSON.stringify({ page, jobId, statusFilter, recommendation, mandatoryFailed, minScore, sortBy, sortDir });
+  const requestKey = JSON.stringify({ page, jobId, statusFilter, recommendation, mandatoryFailed, minScore, sortBy, sortDir, refrestTick });
   const loading = loadedKey !== requestKey;
 
   useEffect(() => {
@@ -93,6 +94,7 @@ export default function AdminATS() {
 
   function reload() {
     setLoadedKey(null);
+    setRefreshTick((t) => t + 1);
   }
 
   async function runScreen(applicationId: string) {
