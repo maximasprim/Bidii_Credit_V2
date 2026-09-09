@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { AlertCircle, Download, X } from "lucide-react";
-import { adminGet, adminPatch, adminDownloadFile } from "../../lib/adminApi";
+import { AlertCircle, Download, Trash2, X } from "lucide-react";
+import { adminGet, adminPatch, adminDelete, adminDownloadFile } from "../../lib/adminApi";
 import { usePageMeta } from "../../lib/usePageMeta";
 import Pagination, { type PageMeta } from "../../components/admin/Pagination";
 
@@ -39,6 +39,7 @@ export default function AdminCareerApplications() {
   const [error, setError] = useState<string | null>(null);
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [selectedCoverLetter, setSelectedCoverLetter] = useState<CareerApplication | null>(null);
 
@@ -86,6 +87,27 @@ export default function AdminCareerApplications() {
       await adminDownloadFile(`/api/admin/career-applications/${app.id}/cv`, app.cv_original_filename);
     } catch (err) {
       setDownloadError(err instanceof Error ? err.message : "Couldn't download CV.");
+    }
+  }
+
+    async function onDelete(app: CareerApplication) {
+    if (
+      !confirm(
+        `Delete ${app.full_name}'s application? This also deletes its ATS screening results, recruiter notes, audit trail, and notification history, and removes the uploaded CV. This can't be undone.`
+      )
+    ) {
+      return;
+    }
+    setDeletingId(app.id);
+    try {
+      await adminDelete(`/api/admin/career-applications/${app.id}`);
+      setItems((prev) => prev.filter((i) => i.id !== app.id));
+      setMeta((prev) => (prev ? { ...prev, total: Math.max(0, prev.total - 1) } : prev));
+      if (selectedCoverLetter?.id === app.id) setSelectedCoverLetter(null);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Couldn't delete application.");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -144,6 +166,7 @@ export default function AdminCareerApplications() {
                 <th className="px-4 py-3 font-medium">CV</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Date</th>
+                <th className="px-4 py-3 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-mist-200">
@@ -185,6 +208,16 @@ export default function AdminCareerApplications() {
                     </select>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-ink-500">{fmtDate(c.created_at)}</td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => onDelete(c)}
+                      disabled={deletingId === c.id}
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-mist-200 text-ink-700 hover:bg-mist-50 disabled:opacity-50"
+                      title="Delete"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

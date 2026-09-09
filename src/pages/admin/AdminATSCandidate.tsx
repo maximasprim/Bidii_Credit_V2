@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { AlertCircle, ArrowLeft, Download, CheckCircle2, XCircle, MinusCircle, Sparkles, ThumbsUp, ThumbsDown, Mail } from "lucide-react";
-import { adminDownloadFile, adminPatch } from "../../lib/adminApi";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { AlertCircle, ArrowLeft, Download, CheckCircle2, XCircle, MinusCircle, Sparkles, ThumbsUp, ThumbsDown, Mail, Trash2 } from "lucide-react";
+import { adminDelete, adminDownloadFile, adminPatch } from "../../lib/adminApi";
 import { usePageMeta } from "../../lib/usePageMeta";
 import ATSRecommendationBadge, { ATSScorePill } from "../../components/admin/ats/ATSScoreBadge";
 import StrictnessSlider from "../../components/admin/ats/StrictnessSlider";
@@ -65,6 +65,7 @@ function methodLabel(h: { action: string; details: Record<string, unknown> }): s
 
 export default function AdminATSCandidate() {
   const { applicationId } = useParams<{ applicationId: string }>();
+  const navigate = useNavigate();
   usePageMeta("Candidate Vetting");
 
   const [detail, setDetail] = useState<ATSVettingDetail | null>(null);
@@ -81,6 +82,7 @@ export default function AdminATSCandidate() {
   const [addingNote, setAddingNote] = useState(false);
 
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [jobConfig, setJobConfig] = useState<ATSConfiguration | null>(null);
   const [savingStrictness, setSavingStrictness] = useState(false);
@@ -181,6 +183,25 @@ export default function AdminATSCandidate() {
     }
   }
 
+  async function onDelete() {
+    if (!detail) return;
+    if (
+      !confirm(
+        `Delete ${detail.application.full_name}'s application? This also deletes its ATS screening results, recruiter notes, audit trail, and notification history, and removes the uploaded CV. This can't be undone.`
+      )
+    ) {
+      return;
+    }
+    setDeleting(true);
+    try {
+      await adminDelete(`/api/admin/career-applications/${detail.application.id}`);
+      navigate("/admin/ats");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Couldn't delete application.");
+      setDeleting(false);
+    }
+  }
+
   if (!loaded) return <p className="text-sm text-ink-500">Loading…</p>;
   if (error) {
     return (
@@ -230,6 +251,14 @@ export default function AdminATSCandidate() {
           >
             <Mail size={13} />
             Send Email
+          </button>
+          <button
+            onClick={onDelete}
+            disabled={deleting}
+            className="flex items-center gap-1.5 rounded-xl border border-mist-200 px-3 py-2 text-xs font-semibold text-ink-700 hover:bg-mist-50 disabled:opacity-50"
+          >
+            <Trash2 size={13} />
+            Delete
           </button>
         </div>
       </div>
