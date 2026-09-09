@@ -34,7 +34,7 @@ export default function AdminATS() {
   const [recommendation, setRecommendation] = useState<ATSRecommendation | "">("");
   const [mandatoryFailed, setMandatoryFailed] = useState<"" | "true" | "false">("");
   const [minScore, setMinScore] = useState("");
-  const [sortBy, setSortBy] = useState<"date" | "score">("score");
+  const [sortBy, setSortBy] = useState<"date" | "score">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const [refrestTick, setRefreshTick] = useState(0);
