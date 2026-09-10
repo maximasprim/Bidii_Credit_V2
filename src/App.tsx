@@ -45,6 +45,7 @@ const AdminLoanTerms = lazy(() => import("./pages/admin/AdminLoanTerms"));
 const AdminBranches = lazy(() => import("./pages/admin/AdminBranches"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminRolePermissions = lazy(() => import("./pages/admin/AdminRolePermissions"));
+const AdminLoanRouting = lazy(() => import("./pages/admin/AdminLoanRouting"));
 
 //ATS
 const AdminATS = lazy(() => import("./pages/admin/AdminATS"));
@@ -122,6 +123,7 @@ function AdminApp() {
             <Route path="branches" element={<AdminBranches />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="role-permissions" element={<AdminRolePermissions />} />
+            <Route path="loan-routing" element={<AdminLoanRouting />} />
             <Route path="ats" element={<AdminATS />} />
             <Route path="ats/config/:jobId" element={<AdminATSConfig />} />
             <Route path="ats/candidates/:applicationId" element={<AdminATSCandidate />} />
