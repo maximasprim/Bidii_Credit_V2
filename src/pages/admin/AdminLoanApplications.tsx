@@ -32,7 +32,7 @@ type LoanApplication = {
 
 type LoanOfficer = { id: string; username: string };
 
-const STATUSES = ["pending", "contacted", "approved", "declined"];
+const STATUSES = ["pending", "assigned", "contacted", "approved", "declined"];
 const PRODUCTS = [
   { value: "", label: "All products" },
   { value: "sme-loans", label: "SME Loans" },

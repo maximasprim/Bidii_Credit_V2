@@ -3,6 +3,7 @@ import { cn } from "../../lib/utils";
 const GREEN = ["approved", "hired", "shortlisted", "active"];
 const RED = ["declined", "rejected", "inactive"];
 const BLUE = ["contacted", "reviewing"];
+const PURPLE = ["assigned"];
 // Anything else (pending, received, and arbitrary subject/category tags
 // like "loan-inquiry") falls back to the ember treatment.
 
@@ -14,6 +15,8 @@ export default function StatusBadge({ status, label }: { status: string; label?:
     ? { bg: "#FEE2E2", text: "#DC2626" }
     : BLUE.includes(key)
     ? { bg: "#DBEAFE", text: "#2563EB" }
+    : PURPLE.includes(key)
+    ? { bg: "#EDE9FE", text: "#7C3AED" }
     : { bg: "var(--color-ember-100)", text: "var(--color-ember-600)" };
 
   return (
