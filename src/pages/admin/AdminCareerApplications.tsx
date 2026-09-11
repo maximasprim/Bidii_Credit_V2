@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { AlertCircle, Download, Trash2, X } from "lucide-react";
+import { AlertCircle, Download, Sparkles, Trash2, X } from "lucide-react";
 import { adminGet, adminPatch, adminDelete, adminDownloadFile } from "../../lib/adminApi";
 import { usePageMeta } from "../../lib/usePageMeta";
 import Pagination, { type PageMeta } from "../../components/admin/Pagination";
+import AdminInterviewPrepModal from "./AdminInterviewPrepModal";
 
 type CareerApplication = {
   id: string;
@@ -42,6 +43,7 @@ export default function AdminCareerApplications() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [selectedCoverLetter, setSelectedCoverLetter] = useState<CareerApplication | null>(null);
+  const [interviewPrepApplication, setInterviewPrepApplication] = useState<CareerApplication | null>(null);
 
   const qs = new URLSearchParams({ page: String(page), page_size: "10" });
   if (statusFilter) qs.set("status", statusFilter);
@@ -104,6 +106,7 @@ export default function AdminCareerApplications() {
       setItems((prev) => prev.filter((i) => i.id !== app.id));
       setMeta((prev) => (prev ? { ...prev, total: Math.max(0, prev.total - 1) } : prev));
       if (selectedCoverLetter?.id === app.id) setSelectedCoverLetter(null);
+      if (interviewPrepApplication?.id === app.id) setInterviewPrepApplication(null);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Couldn't delete application.");
     } finally {
@@ -209,6 +212,16 @@ export default function AdminCareerApplications() {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-ink-500">{fmtDate(c.created_at)}</td>
                   <td className="px-4 py-3">
+                     <div className="flex items-center gap-2">
+                      {c.status === "shortlisted" && (
+                        <button
+                          onClick={() => setInterviewPrepApplication(c)}
+                          className="flex h-8 w-8 items-center justify-center rounded-full border border-mist-200 text-ember-500 hover:bg-mist-50"
+                          title="Prep for Interview"
+                        >
+                          <Sparkles size={13} />
+                        </button>
+                      )}
                     <button
                       onClick={() => onDelete(c)}
                       disabled={deletingId === c.id}
@@ -217,6 +230,7 @@ export default function AdminCareerApplications() {
                     >
                       <Trash2 size={13} />
                     </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -224,6 +238,14 @@ export default function AdminCareerApplications() {
           </table>
         )}
       </div>
+      {interviewPrepApplication && (
+        <AdminInterviewPrepModal
+          applicationId={interviewPrepApplication.id}
+          candidateName={interviewPrepApplication.full_name}
+          roleTitle={interviewPrepApplication.role}
+          onClose={() => setInterviewPrepApplication(null)}
+        />
+      )}
       {selectedCoverLetter && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"

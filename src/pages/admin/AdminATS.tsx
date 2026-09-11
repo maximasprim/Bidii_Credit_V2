@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { AlertCircle, Settings2, RefreshCw, ChevronRight } from "lucide-react";
+import { AlertCircle, Settings2, RefreshCw, ChevronRight, Sparkles } from "lucide-react";
 import { adminGet } from "../../lib/adminApi";
 import { usePageMeta } from "../../lib/usePageMeta";
 import Pagination, { type PageMeta } from "../../components/admin/Pagination";
 import StatusBadge from "../../components/admin/StatusBadge";
 import ATSRecommendationBadge, { ATSScorePill } from "../../components/admin/ats/ATSScoreBadge";
+import AdminInterviewPrepModal from "./AdminInterviewPrepModal";
 import {
   finalRecommendation,
   getATSStats,
@@ -42,6 +43,7 @@ export default function AdminATS() {
   const [items, setItems] = useState<CareerApplicationWithATS[]>([]);
   const [meta, setMeta] = useState<PageMeta | null>(null);
   const [stats, setStats] = useState<ATSStats | null>(null);
+  const [interviewPrepApplication, setInterviewPrepApplication] = useState<CareerApplicationWithATS | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const [screeningId, setScreeningId] = useState<string | null>(null);
@@ -291,6 +293,16 @@ export default function AdminATS() {
                     <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
                     <td className="px-4 py-3 whitespace-nowrap text-ink-500">{fmtDate(c.created_at)}</td>
                     <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        {c.status === "shortlisted" && (
+                          <button
+                            onClick={() => setInterviewPrepApplication(c)}
+                            className="flex items-center gap-1 text-xs font-semibold text-ember-500"
+                            title="Prep for Interview"
+                          >
+                            <Sparkles size={13} />
+                          </button>
+                        )}
                       <Link
                         to={`/admin/ats/candidates/${c.id}`}
                         className="flex items-center gap-1 text-xs font-semibold"
@@ -299,6 +311,7 @@ export default function AdminATS() {
                         Vet
                         <ChevronRight size={13} />
                       </Link>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -308,6 +321,15 @@ export default function AdminATS() {
         )}
       </div>
 
+            {interviewPrepApplication && (
+        <AdminInterviewPrepModal
+          applicationId={interviewPrepApplication.id}
+          candidateName={interviewPrepApplication.full_name}
+          roleTitle={interviewPrepApplication.role}
+          onClose={() => setInterviewPrepApplication(null)}
+        />
+      )}
+      
       {meta && <Pagination meta={meta} onPageChange={setPage} />}
     </div>
   );

@@ -6,6 +6,7 @@ import { usePageMeta } from "../../lib/usePageMeta";
 import ATSRecommendationBadge, { ATSScorePill } from "../../components/admin/ats/ATSScoreBadge";
 import StrictnessSlider from "../../components/admin/ats/StrictnessSlider";
 import AdminSendNotificationModal from "./AdminSendNotificationModal";
+import AdminInterviewPrepModal from "./AdminInterviewPrepModal";
 import {
   addRecruiterNote,
   finalRecommendation,
@@ -72,6 +73,7 @@ export default function AdminATSCandidate() {
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+   const [showInterviewPrepModal, setShowInterviewPrepModal] = useState(false);
   const [screening, setScreening] = useState<"default" | "weighted" | "ai" | null>(null);
 
   const [overrideChoice, setOverrideChoice] = useState<ATSRecommendation>("review");
@@ -252,6 +254,15 @@ export default function AdminATSCandidate() {
             <Mail size={13} />
             Send Email
           </button>
+          {application.status === "shortlisted" && (
+            <button
+              onClick={() => setShowInterviewPrepModal(true)}
+              className="flex items-center gap-1.5 rounded-xl border border-mist-200 px-3 py-2 text-xs font-semibold text-ember-500"
+            >
+              <Sparkles size={13} />
+              Prep for Interview
+            </button>
+          )}
           <button
             onClick={onDelete}
             disabled={deleting}
@@ -271,6 +282,15 @@ export default function AdminATSCandidate() {
         />
       )}
 
+      {showInterviewPrepModal && (
+        <AdminInterviewPrepModal
+          applicationId={application.id}
+          candidateName={application.full_name}
+          roleTitle={job?.title ?? application.role}
+          onClose={() => setShowInterviewPrepModal(false)}
+        />
+      )} 
+      
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-6 lg:col-span-2">
           {/* Location/date-available/desired-pay are optional and can be
