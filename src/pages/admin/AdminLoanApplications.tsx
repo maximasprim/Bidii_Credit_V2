@@ -30,7 +30,16 @@ type LoanApplication = {
   created_at: string;
 };
 
-type LoanOfficer = { id: string; username: string };
+type LoanOfficer = { id: string; username: string; role: string };
+
+// Loan applications with no computed branch (rare, but possible on older
+// records from before automatic branch assignment existed) are cached
+// under this key instead of being skipped - see openAssign below.
+const NO_BRANCH_KEY = "__none__";
+
+function formatAgentRole(role: string): string {
+  return role.replace(/_/g, " ");
+}
 
 const STATUSES = ["pending", "assigned", "contacted", "approved", "declined"];
 const PRODUCTS = [
@@ -111,10 +120,18 @@ export default function AdminLoanApplications() {
 
   async function openAssign(item: LoanApplication) {
     setAssigningId(item.id);
-    if (item.assigned_branch_id && !officersByBranch[item.assigned_branch_id]) {
+    // Fetches for every branch key, including NO_BRANCH_KEY for the rare
+    // application with no computed branch - the "admin" role gets every
+    // active agent back regardless of branch_id (see the backend
+    // endpoint's docstring), so there's no reason to skip the fetch just
+    // because this particular application has no branch of its own.
+    const cacheKey = item.assigned_branch_id ?? NO_BRANCH_KEY;
+    if (!officersByBranch[cacheKey]) {
       try {
-        const officers = await adminGet<LoanOfficer[]>(`/api/admin/loan-applications/branch-officers?branch_id=${item.assigned_branch_id}`);
-        setOfficersByBranch((prev) => ({ ...prev, [item.assigned_branch_id!]: officers }));
+        const officers = await adminGet<LoanOfficer[]>(
+          `/api/admin/loan-applications/branch-officers?branch_id=${item.assigned_branch_id ?? ""}`
+        );
+        setOfficersByBranch((prev) => ({ ...prev, [cacheKey]: officers }));
       } catch {
         // leave the dropdown showing "no officers found" rather than blocking the whole page
       }
@@ -123,10 +140,10 @@ export default function AdminLoanApplications() {
 
   async function assignOfficer(item: LoanApplication, officerId: string) {
     try {
-      const res = await adminPatch<{ data: LoanApplication }>(`/api/admin/loan-applications/${item.id}/assign`, {
+    const res = await adminPatch<LoanApplication>(`/api/admin/loan-applications/${item.id}/assign`, {
         assigned_loan_officer_id: officerId || null,
       });
-      setItems((prev) => prev.map((i) => (i.id === item.id ? res.data : i)));
+      setItems((prev) => prev.map((i) => (i.id === item.id ? res : i)));
       setAssigningId(null);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Couldn't assign loan officer.");
@@ -136,10 +153,10 @@ export default function AdminLoanApplications() {
   async function reassignBranch(item: LoanApplication, branchId: string) {
     if (!branchId) return;
     try {
-      const res = await adminPatch<{ data: LoanApplication }>(`/api/admin/loan-applications/${item.id}/assign`, {
+      const res = await adminPatch<LoanApplication>(`/api/admin/loan-applications/${item.id}/assign`, {
         assigned_branch_id: branchId,
       });
-      setItems((prev) => prev.map((i) => (i.id === item.id ? res.data : i)));
+      setItems((prev) => prev.map((i) => (i.id === item.id ? res : i)));
     } catch (err) {
       alert(err instanceof Error ? err.message : "Couldn't reassign branch.");
     }
@@ -245,8 +262,10 @@ export default function AdminLoanApplications() {
                           className="rounded-lg border border-mist-200 bg-surface px-2 py-1.5 text-xs text-ink-700 focus:outline-none"
                         >
                           <option value="">Unassigned</option>
-                          {(l.assigned_branch_id ? officersByBranch[l.assigned_branch_id] : [])?.map((o) => (
-                            <option key={o.id} value={o.id}>{o.username}</option>
+                           {officersByBranch[l.assigned_branch_id ?? NO_BRANCH_KEY]?.map((o) => (
+                            <option key={o.id} value={o.id}>
+                              {o.username} - {formatAgentRole(o.role)}
+                            </option>
                           ))}
                         </select>
                       ) : (
