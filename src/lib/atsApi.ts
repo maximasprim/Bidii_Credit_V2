@@ -260,6 +260,62 @@ export function screenAllForJob(jobId: string, rescoreAll: boolean, method?: ATS
   return adminPost<{ screened_count: number }>(`/api/admin/ats/screening/jobs/${jobId}/screen-all?${qs.toString()}`, {});
 }
 
+// --- Async batch screening (for large batches - hundreds to 1000+) --------
+// Kicks off screening in the background instead of blocking on one request
+// for the whole run, then poll getBatchScreeningStatus for live progress.
+// screenAllForJob above is untouched and still works exactly as before for
+// smaller batches / any existing callers.
+
+export type ATSBatchJobStatusValue = "running" | "completed" | "failed" | "cancelled";
+
+export type ATSBatchJobStart = {
+  batch_job_id: string;
+  total: number;
+  message: string;
+};
+
+export type ATSBatchJobStatusResult = {
+  id: string;
+  job_id: string;
+  status: ATSBatchJobStatusValue;
+  total: number;
+  completed: number;
+  failed_count: number;
+  cancel_requested: boolean;
+  stopped_reason: string | null;
+  failures: { application_id: string; full_name: string | null; error: string }[];
+  created_at: string;
+  finished_at: string | null;
+};
+
+export function screenAllForJobAsync(jobId: string, rescoreAll: boolean, method?: ATSEvaluationMode) {
+  const qs = new URLSearchParams({ rescore_all: String(rescoreAll) });
+  if (method) qs.set("method", method);
+  return adminPost<ATSBatchJobStart>(`/api/admin/ats/screening/jobs/${jobId}/screen-all/async?${qs.toString()}`, {});
+}
+
+export function getBatchScreeningStatus(jobId: string, batchJobId: string) {
+  return adminGet<ATSBatchJobStatusResult>(
+    `/api/admin/ats/screening/jobs/${jobId}/screen-all/status/${batchJobId}`
+  );
+}
+
+// Called on page load / job change so an in-progress batch survives a
+// refresh - the admin UI has no other memory of which batch was running.
+export function getActiveBatchScreening(jobId: string) {
+  return adminGet<ATSBatchJobStatusResult | null>(`/api/admin/ats/screening/jobs/${jobId}/screen-all/active`);
+}
+
+// Graceful stop: candidates already in flight still finish; only
+// not-yet-started ones are skipped. Safe to call even if the batch has
+// already finished (no-op).
+export function cancelBatchScreening(jobId: string, batchJobId: string) {
+  return adminPost<ATSBatchJobStatusResult>(
+    `/api/admin/ats/screening/jobs/${jobId}/screen-all/${batchJobId}/cancel`,
+    {}
+  );
+}
+
 export type ATSApplicationFilters = {
   page?: number;
   page_size?: number;
