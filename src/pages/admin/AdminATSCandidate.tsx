@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { AlertCircle, ArrowLeft, Download, CheckCircle2, XCircle, MinusCircle, Sparkles, ThumbsUp, ThumbsDown, Mail, Trash2 } from "lucide-react";
 import { adminDelete, adminDownloadFile, adminPatch } from "../../lib/adminApi";
 import { usePageMeta } from "../../lib/usePageMeta";
@@ -67,6 +67,7 @@ function methodLabel(h: { action: string; details: Record<string, unknown> }): s
 export default function AdminATSCandidate() {
   const { applicationId } = useParams<{ applicationId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   usePageMeta("Candidate Vetting");
 
   const [detail, setDetail] = useState<ATSVettingDetail | null>(null);
@@ -220,7 +221,22 @@ export default function AdminATSCandidate() {
 
   return (
     <div>
-      <Link to="/admin/ats" className="mb-4 flex items-center gap-1.5 text-xs font-semibold text-ink-500">
+      <Link
+        to="/admin/ats"
+        onClick={(e) => {
+          // Prefer real browser "back" so we land on the exact list page
+          // (same job filter, same page number) the admin came from -
+          // AdminATS.tsx keeps those in the URL for this reason. Falls
+          // through to a plain navigation to /admin/ats when there's no
+          // in-app history to go back to (e.g. this page was opened
+          // directly/bookmarked), so that case still works as before.
+          if (location.key !== "default") {
+            e.preventDefault();
+            navigate(-1);
+          }
+        }}
+        className="mb-4 flex items-center gap-1.5 text-xs font-semibold text-ink-500"
+      >
         <ArrowLeft size={13} />
         Back to candidate screening
       </Link>
@@ -583,15 +599,15 @@ function CriteriaList({ label, icon, items }: { label: string; icon: React.React
   );
 }
 
-
 // import { useEffect, useState } from "react";
-// import { Link, useParams } from "react-router-dom";
-// import { AlertCircle, ArrowLeft, Download, CheckCircle2, XCircle, MinusCircle, Sparkles, ThumbsUp, ThumbsDown, Mail } from "lucide-react";
-// import { adminDownloadFile, adminPatch } from "../../lib/adminApi";
+// import { Link, useNavigate, useParams } from "react-router-dom";
+// import { AlertCircle, ArrowLeft, Download, CheckCircle2, XCircle, MinusCircle, Sparkles, ThumbsUp, ThumbsDown, Mail, Trash2 } from "lucide-react";
+// import { adminDelete, adminDownloadFile, adminPatch } from "../../lib/adminApi";
 // import { usePageMeta } from "../../lib/usePageMeta";
 // import ATSRecommendationBadge, { ATSScorePill } from "../../components/admin/ats/ATSScoreBadge";
 // import StrictnessSlider from "../../components/admin/ats/StrictnessSlider";
 // import AdminSendNotificationModal from "./AdminSendNotificationModal";
+// import AdminInterviewPrepModal from "./AdminInterviewPrepModal";
 // import {
 //   addRecruiterNote,
 //   finalRecommendation,
@@ -651,12 +667,14 @@ function CriteriaList({ label, icon, items }: { label: string; icon: React.React
 
 // export default function AdminATSCandidate() {
 //   const { applicationId } = useParams<{ applicationId: string }>();
+//   const navigate = useNavigate();
 //   usePageMeta("Candidate Vetting");
 
 //   const [detail, setDetail] = useState<ATSVettingDetail | null>(null);
 //   const [error, setError] = useState<string | null>(null);
 //   const [loaded, setLoaded] = useState(false);
 //   const [showEmailModal, setShowEmailModal] = useState(false);
+//    const [showInterviewPrepModal, setShowInterviewPrepModal] = useState(false);
 //   const [screening, setScreening] = useState<"default" | "weighted" | "ai" | null>(null);
 
 //   const [overrideChoice, setOverrideChoice] = useState<ATSRecommendation>("review");
@@ -667,6 +685,7 @@ function CriteriaList({ label, icon, items }: { label: string; icon: React.React
 //   const [addingNote, setAddingNote] = useState(false);
 
 //   const [updatingStatus, setUpdatingStatus] = useState(false);
+//   const [deleting, setDeleting] = useState(false);
 
 //   const [jobConfig, setJobConfig] = useState<ATSConfiguration | null>(null);
 //   const [savingStrictness, setSavingStrictness] = useState(false);
@@ -674,12 +693,33 @@ function CriteriaList({ label, icon, items }: { label: string; icon: React.React
 //   function load() {
 //     if (!applicationId) return;
 //     getVettingDetail(applicationId)
-//       .then((data) => { setDetail(data); setError(null); })
+//       .then((data) => {
+//         setDetail(data);
+//         setError(null);
+//         if (data.job) {
+//           getJobATSConfiguration(data.job.id)
+//             .then((c) => setJobConfig(c.data))
+//             .catch(() => {});
+//         }
+//       })
 //       .catch((err) => setError(err.message ?? "Couldn't load candidate."))
 //       .finally(() => setLoaded(true));
 //   }
 
 //   useEffect(load, [applicationId]);
+
+//   async function saveStrictness(level: ATSStrictness) {
+//     if (!jobConfig) return;
+//     setSavingStrictness(true);
+//     try {
+//       const updated = await updateATSConfiguration(jobConfig.id, { strictness: level });
+//       setJobConfig(updated.data);
+//     } catch (err) {
+//       alert(err instanceof Error ? err.message : "Couldn't update strictness.");
+//     } finally {
+//       setSavingStrictness(false);
+//     }
+//   }
 
 //   async function runScreen(method?: ATSEvaluationMode) {
 //     if (!applicationId) return;
@@ -746,6 +786,25 @@ function CriteriaList({ label, icon, items }: { label: string; icon: React.React
 //     }
 //   }
 
+//   async function onDelete() {
+//     if (!detail) return;
+//     if (
+//       !confirm(
+//         `Delete ${detail.application.full_name}'s application? This also deletes its ATS screening results, recruiter notes, audit trail, and notification history, and removes the uploaded CV. This can't be undone.`
+//       )
+//     ) {
+//       return;
+//     }
+//     setDeleting(true);
+//     try {
+//       await adminDelete(`/api/admin/career-applications/${detail.application.id}`);
+//       navigate("/admin/ats");
+//     } catch (err) {
+//       alert(err instanceof Error ? err.message : "Couldn't delete application.");
+//       setDeleting(false);
+//     }
+//   }
+
 //   if (!loaded) return <p className="text-sm text-ink-500">Loading…</p>;
 //   if (error) {
 //     return (
@@ -796,6 +855,23 @@ function CriteriaList({ label, icon, items }: { label: string; icon: React.React
 //             <Mail size={13} />
 //             Send Email
 //           </button>
+//           {application.status === "shortlisted" && (
+//             <button
+//               onClick={() => setShowInterviewPrepModal(true)}
+//               className="flex items-center gap-1.5 rounded-xl border border-mist-200 px-3 py-2 text-xs font-semibold text-ember-500"
+//             >
+//               <Sparkles size={13} />
+//               Prep for Interview
+//             </button>
+//           )}
+//           <button
+//             onClick={onDelete}
+//             disabled={deleting}
+//             className="flex items-center gap-1.5 rounded-xl border border-mist-200 px-3 py-2 text-xs font-semibold text-ink-700 hover:bg-mist-50 disabled:opacity-50"
+//           >
+//             <Trash2 size={13} />
+//             Delete
+//           </button>
 //         </div>
 //       </div>
 
@@ -807,8 +883,38 @@ function CriteriaList({ label, icon, items }: { label: string; icon: React.React
 //         />
 //       )}
 
+//       {showInterviewPrepModal && (
+//         <AdminInterviewPrepModal
+//           applicationId={application.id}
+//           candidateName={application.full_name}
+//           roleTitle={job?.title ?? application.role}
+//           onClose={() => setShowInterviewPrepModal(false)}
+//         />
+//       )} 
+      
 //       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 //         <div className="flex flex-col gap-6 lg:col-span-2">
+//           {/* Location/date-available/desired-pay are optional and can be
+//               null on applications submitted before these fields existed. */}
+//           {(application.location || application.date_available || application.desired_pay) && (
+//             <Card title="Candidate Info">
+//               <div className="grid gap-4 sm:grid-cols-3">
+//                 <div>
+//                   <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Location</p>
+//                   <p className="mt-1 text-sm text-ink-700">{application.location ?? "—"}</p>
+//                 </div>
+//                 <div>
+//                   <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Date available</p>
+//                   <p className="mt-1 text-sm text-ink-700">{application.date_available ?? "—"}</p>
+//                 </div>
+//                 <div>
+//                   <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Desired pay</p>
+//                   <p className="mt-1 text-sm text-ink-700">{application.desired_pay ?? "—"}</p>
+//                 </div>
+//               </div>
+//             </Card>
+//           )}
+          
 //           {/* Cover note */}
 //           <Card title="Cover Note">
 //             <p className="whitespace-pre-wrap text-sm text-ink-700">{application.cover_note}</p>
@@ -816,6 +922,20 @@ function CriteriaList({ label, icon, items }: { label: string; icon: React.React
 
 //           {/* ATS score */}
 //           <Card title="ATS Screening">
+//             {jobConfig && (
+//               <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl bg-mist-50 p-3">
+//                 <span className="text-xs font-semibold text-ink-700">Strictness:</span>
+//                 <StrictnessSlider
+//                   value={jobConfig.strictness}
+//                   disabled={savingStrictness}
+//                   onChange={saveStrictness}
+//                 />
+//                 <span className="text-xs text-ink-500">
+//                   Applies to this job's {jobConfig.evaluation_mode === "ai" ? "AI evaluations" : "keyword matching"} going
+//                   forward - re-run screening below to apply it to this candidate.
+//                 </span>
+//               </div>
+//             )}
 //             {!result ? (
 //               <div className="flex items-center justify-between">
 //                 <p className="text-sm text-ink-500">

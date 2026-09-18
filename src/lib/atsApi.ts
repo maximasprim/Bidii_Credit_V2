@@ -325,6 +325,7 @@ export type ATSApplicationFilters = {
   min_score?: number;
   max_score?: number;
   mandatory_failed?: boolean;
+  q?: string;
   sort_by?: "date" | "score";
   sort_dir?: "asc" | "desc";
 };

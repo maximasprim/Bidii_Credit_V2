@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { AlertCircle, Download, Sparkles, Trash2, X } from "lucide-react";
+import { AlertCircle, Download, Search, Sparkles, Trash2, X } from "lucide-react";
 import { adminGet, adminPatch, adminDelete, adminDownloadFile } from "../../lib/adminApi";
 import { usePageMeta } from "../../lib/usePageMeta";
 import Pagination, { type PageMeta } from "../../components/admin/Pagination";
@@ -37,6 +37,11 @@ export default function AdminCareerApplications() {
   const [meta, setMeta] = useState<PageMeta | null>(null);
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("");
+  // Free-text search (name / email / phone), debounced so typing doesn't
+  // fire a request on every keystroke - same pattern as the candidate
+  // screening page's search (AdminATS.tsx).
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -48,8 +53,17 @@ export default function AdminCareerApplications() {
   const qs = new URLSearchParams({ page: String(page), page_size: "10" });
   if (statusFilter) qs.set("status", statusFilter);
   if (jobIdFilter) qs.set("job_id", jobIdFilter);
+  if (debouncedSearch) qs.set("q", debouncedSearch);
   const requestKey = qs.toString();
   const loading = loadedKey !== requestKey;
+
+  // Debounces the search box into the value that actually drives the
+  // fetch above, so typing doesn't trigger a request per keystroke - only
+  // once typing pauses for 400ms.
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(id);
+  }, [search]);
 
   useEffect(() => {
     let cancelled = false;
@@ -126,6 +140,17 @@ export default function AdminCareerApplications() {
   return (
     <div>
       <div className="mb-5 flex flex-wrap items-center gap-3">
+        <div className="relative">
+          <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            placeholder="Search name, email, or phone"
+            className="w-56 rounded-xl border border-mist-200 bg-surface py-2 pl-8 pr-3 text-sm text-ink-700 focus:outline-none"
+          />
+        </div>
+        
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
