@@ -232,18 +232,23 @@ export default function AdminATS() {
     }
   }
 
-  // Runs the batch in the background and polls for progress, instead of
+ // Runs the batch in the background and polls for progress, instead of
   // blocking on one request for the whole run - see screenAllForJobAsync /
   // getBatchScreeningStatus in atsApi.ts. This is what makes scores appear
   // live as each candidate finishes, and keeps working reliably at
   // hundreds-to-1000+ candidates where a single blocking request would be
   // likely to time out.
-  async function runScreenAll() {
+  //
+  // rescoreAll=true is "batch rescreening" - re-runs every application
+  // for this job, including ones already screened, instead of only the
+  // unscored ones. The confirm() before it (in the button below) exists
+  // because this can be a much bigger/costlier run than the default.
+  async function runScreenAll(rescoreAll: boolean) {
     if (!jobId) return;
     setBatchScreening(true);
     setBatchProgress(null);
     try {
-      const start = await screenAllForJobAsync(jobId, false);
+      const start = await screenAllForJobAsync(jobId, rescoreAll);
       if (start.total === 0) {
         alert(start.message);
         setBatchScreening(false);
@@ -295,6 +300,7 @@ export default function AdminATS() {
             ];
             if (status.failed_count) parts.push(`${status.failed_count} couldn't be screened.`);
             if (status.stopped_reason && status.status !== "cancelled") parts.push(status.stopped_reason);
+            if (status.model_fallback_note) parts.push(status.model_fallback_note);
             alert(parts.join(" "));
             setBatchScreening(false);
             setActiveBatchJobId(null);
@@ -324,8 +330,9 @@ export default function AdminATS() {
         </div>
         {jobId && (
           <div className="flex flex-col items-end gap-1.5">
-            <button
-              onClick={batchScreening ? cancelRunningBatch : runScreenAll}
+            <div className="flex items-center gap-2">
+             <button
+              onClick={batchScreening ? cancelRunningBatch : () => runScreenAll(false)}
               disabled={batchScreening ? cancellingBatch || !activeBatchJobId : false}
               className="flex items-center gap-1.5 rounded-xl px-2 py-2 text-sm font-semibold text-white disabled:opacity-50"
               style={{ backgroundColor: batchScreening ? "var(--color-red-500, #ff0000)" : "var(--color-ember-500)" }}
@@ -343,6 +350,26 @@ export default function AdminATS() {
                 </>
               )}
             </button>
+                          {!batchScreening && (
+                <button
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        "Re-screen every application for this job, including ones already screened? This can take a while and cost more in AI usage than screening just the unscored ones."
+                      )
+                    ) {
+                      runScreenAll(true);
+                    }
+                  }}
+                  title="Re-run screening for every application, including ones already screened"
+                  className="flex items-center gap-1.5 rounded-xl border border-mist-200 px-2 py-2 text-sm font-semibold text-ink-700 hover:bg-mist-100"
+                  // style={{ backgroundColor: "var(--color-green-400)"}}
+                >
+                  <RefreshCw size={14} />
+                  Batch Rescreen All
+                </button>
+              )}
+            </div>
             {batchScreening && batchProgress && (
               <div className="w-56 text-right">
                 <div className="text-xs text-ink-500">

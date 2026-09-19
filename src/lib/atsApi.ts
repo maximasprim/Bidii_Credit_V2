@@ -283,6 +283,7 @@ export type ATSBatchJobStatusResult = {
   failed_count: number;
   cancel_requested: boolean;
   stopped_reason: string | null;
+  model_fallback_note: string | null;
   failures: { application_id: string; full_name: string | null; error: string }[];
   created_at: string;
   finished_at: string | null;
