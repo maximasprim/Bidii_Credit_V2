@@ -159,6 +159,40 @@ export default function AdminUsers() {
     }
   }
 
+  // Permanent delete is separate from the deactivate/reactivate toggle
+  // above - it actually removes the account rather than just disabling
+  // login. Only offered once an account is already deactivated (see the
+  // button below), so this is always a deliberate second step, not a way
+  // to remove someone who's still actively using the dashboard.
+  async function handleHardDelete(user: AdminUser) {
+    if (
+      !confirm(
+        `Permanently delete ${user.username}? This cannot be undone. Their own notes and personal ` +
+          "notifications will be deleted; loan assignments, routing rules, and audit/screening history " +
+          "they're linked to will be kept, just no longer showing them as who it was."
+      )
+    ) {
+      return;
+    }
+    try {
+      const result = await adminDelete<{
+        deleted_recruiter_notes: number;
+        deleted_internal_notifications: number;
+        unassigned_loan_applications: number;
+        anonymized_records: number;
+      }>(`/api/admin/users/${user.id}/permanent`);
+      const cleanedUp: string[] = [];
+      if (result.deleted_recruiter_notes) cleanedUp.push(`${result.deleted_recruiter_notes} note(s)`);
+      if (result.deleted_internal_notifications) cleanedUp.push(`${result.deleted_internal_notifications} notification(s)`);
+      if (result.unassigned_loan_applications) cleanedUp.push(`${result.unassigned_loan_applications} loan assignment(s) cleared`);
+      if (result.anonymized_records) cleanedUp.push(`${result.anonymized_records} other record(s) anonymized`);
+      alert(`${user.username} was permanently deleted.${cleanedUp.length ? ` (${cleanedUp.join(", ")})` : ""}`);
+      reload();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Couldn't permanently delete this admin.");
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-mist-200 bg-surface p-5">
@@ -428,6 +462,15 @@ export default function AdminUsers() {
                                   title={u.is_active ? "Deactivate" : "Reactivate"}
                                 >
                                   {u.is_active ? <Trash2 size={13} /> : <RotateCcw size={13} />}
+                                </button>
+                              )}
+                              {!isSelf && !u.is_active && (
+                                <button
+                                  onClick={() => handleHardDelete(u)}
+                                  className="flex h-7 w-7 items-center justify-center rounded-full border border-red-200 text-red-600 hover:bg-red-50"
+                                  title="Permanently delete"
+                                >
+                                  <Trash2 size={13} />
                                 </button>
                               )}
                             </div>
