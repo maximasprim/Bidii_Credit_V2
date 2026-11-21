@@ -32,7 +32,8 @@ export type AdminRole =
   | "logbook_agent"
   | "rental_loan_agent"
   | "sme_loan_agent"
-  | "mobile_loan_agent";
+  | "mobile_loan_agent"
+  | "staff";
 
 export const ADMIN_ROLES: { value: AdminRole; label: string }[] = [
   { value: "admin", label: "Admin" },
@@ -47,7 +48,11 @@ export const ADMIN_ROLES: { value: AdminRole; label: string }[] = [
   { value: "mobile_loan_agent", label: "Mobile Loan Agent" },
 ];
 
+/** Offered in the user forms only while the Staff Performance module is on (the backend then lists its menus). */
+export const PERFORMANCE_ROLE_OPTION: { value: AdminRole; label: string } = { value: "staff", label: "Staff (own performance only)" };
+
 export function roleLabel(role: string): string {
+  if (role === PERFORMANCE_ROLE_OPTION.value) return PERFORMANCE_ROLE_OPTION.label;
   return ADMIN_ROLES.find((r) => r.value === role)?.label ?? role;
 }
 
@@ -84,6 +89,7 @@ export const DEFAULT_MENU_ACCESS: Record<Exclude<AdminRole, "admin">, string[]> 
   rental_loan_agent: ["/admin/loan-applications"],
   sme_loan_agent: ["/admin/loan-applications"],
   mobile_loan_agent: ["/admin/loan-applications"],
+  staff: [], // only meaningful when the Staff Performance module is on; menus then come from the backend
 };
 
 /**
@@ -94,7 +100,8 @@ export const DEFAULT_MENU_ACCESS: Record<Exclude<AdminRole, "admin">, string[]> 
  */
 export function resolveAllowedMenus(role: string | null, fetchedAllowedMenus: string[] | null): string[] {
   if (!role) return [];
-  if (role === "admin") return ALL_MENU_PATHS;
+  // "admin" always gets everything the backend lists too, so menus of optional modules (e.g. Staff Performance) appear when they are enabled.
+  if (role === "admin") return Array.from(new Set([...ALL_MENU_PATHS, ...(fetchedAllowedMenus ?? [])]));
   if (fetchedAllowedMenus) return fetchedAllowedMenus;
   return DEFAULT_MENU_ACCESS[role as Exclude<AdminRole, "admin">] ?? [];
 }
@@ -129,5 +136,3 @@ export function pathAllowed(allowedMenus: string[], pathname: string): boolean {
 export function getLandingPath(allowedMenus: string[]): string {
   return allowedMenus[0] ?? "/admin/login";
 }
-
-

@@ -15,17 +15,17 @@ import loginBg from "../../../public/Bidii_Credit_Logo.png";
  * role without it would otherwise land somewhere it immediately gets
  * bounced away from by AdminLayout's own access guard.
  */
-function safeRedirectTarget(next: string | null, role: string | null): string {
+function safeRedirectTarget(next: string | null, role: string | null, menus: string[] | null = null): string {
   if (next && next.startsWith("/") && !next.startsWith("//")) return next;
-  return getLandingPath(resolveAllowedMenus(role, null));
+  return getLandingPath(resolveAllowedMenus(role, menus));
 }
 
 export default function AdminLogin() {
   usePageMeta("Admin Login");
-  const { isAuthenticated, role, login } = useAdminAuth();
+  const { isAuthenticated, role, allowedMenus, login } = useAdminAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectTo = safeRedirectTarget(searchParams.get("next"), role);
+  const redirectTo = safeRedirectTarget(searchParams.get("next"), role, allowedMenus);
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -42,11 +42,11 @@ export default function AdminLogin() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await login(username, password);
+      const menus = await login(username, password);
       // Recomputed post-login (rather than reusing the `redirectTo` closed
       // over above) since that one was necessarily computed before we knew
       // this account's actual role.
-      const next = safeRedirectTarget(searchParams.get("next"), getCurrentAdminRole());
+      const next = safeRedirectTarget(searchParams.get("next"), getCurrentAdminRole(), menus);
       navigate(next, { replace: true });
     } catch {
       setError("Invalid username or password.");

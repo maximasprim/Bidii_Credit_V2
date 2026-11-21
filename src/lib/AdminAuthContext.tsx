@@ -20,7 +20,15 @@ type AdminAuthContextValue = {
    * falls back to a static default for that window, see roleAccess.ts.
    */
   allowedMenus: string[] | null;
-  login: (username: string, password: string) => Promise<void>;
+   /**
+   * False from the moment a stored session is found (page refresh) or a login starts until the
+   * first permissions fetch has finished, whether it worked or failed. AdminLayout waits for it so
+   * it never judges a page or draws a sidebar from the static fallback while the real answer is
+   * still on its way.
+   */
+  permissionsReady: boolean;
+  /** Resolves to the menus the backend allowed (null if that fetch failed). */
+  login: (username: string, password: string) => Promise<string[] | null>;
   logout: () => void;
     /** Re-fetches allowedMenus - call after saving changes on the Roles &
    *  Permissions page so an affected admin's own sidebar (if they're not
@@ -34,11 +42,19 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(getAdminToken()));
   const [role, setRole] = useState(() => getCurrentAdminRole());
   const [allowedMenus, setAllowedMenus] = useState<string[] | null>(null);
+  const [permissionsReady, setPermissionsReady] = useState(false);
 
-  function fetchPermissions() {
-    getMyPermissions()
-      .then((res) => setAllowedMenus(res.allowed_menus))
-      .catch(() => setAllowedMenus(null)); // AdminLayout falls back to the static default on a fetch failure
+  function fetchPermissions(): Promise<string[] | null> {
+    return getMyPermissions()
+      .then((res) => {
+        setAllowedMenus(res.allowed_menus);
+        return res.allowed_menus;
+      })
+      .catch(() => {
+        setAllowedMenus(null); // AdminLayout falls back to the static default on a fetch failure
+        return null;
+      })
+      .finally(() => setPermissionsReady(true));
   }
 
     useEffect(() => {
@@ -53,15 +69,18 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       setIsAuthenticated(false);
       setRole(null);
       setAllowedMenus(null);
+      setPermissionsReady(false);
     });
   }, []);
 
   async function login(username: string, password: string) {
     const { access_token } = await adminLogin(username, password);
     setAdminToken(access_token);
-    setIsAuthenticated(true);
     setRole(getCurrentAdminRole());
-    fetchPermissions();
+    // Wait for the real menus before flipping to "signed in", so the first screen already has the whole sidebar.
+    const menus = await fetchPermissions();
+    setIsAuthenticated(true);
+    return menus;
   }
 
   function logout() {
@@ -69,11 +88,12 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(false);
     setRole(null);
     setAllowedMenus(null);
+    setPermissionsReady(false);
   }
 
   return (
     <AdminAuthContext.Provider 
-      value={{ isAuthenticated, role, login, logout, allowedMenus, refreshPermissions: fetchPermissions }}
+      value={{ isAuthenticated, role, login, logout, allowedMenus, permissionsReady, refreshPermissions: fetchPermissions }}
     >
       {children}
     </AdminAuthContext.Provider>

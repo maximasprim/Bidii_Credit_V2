@@ -47,6 +47,26 @@ const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminRolePermissions = lazy(() => import("./pages/admin/AdminRolePermissions"));
 const AdminLoanRouting = lazy(() => import("./pages/admin/AdminLoanRouting"));
 
+// Staff Performance module
+const AdminMyPerformance = lazy(() => import("./pages/admin/AdminMyPerformance"));
+const AdminPerformance = lazy(() => import("./pages/admin/AdminPerformance"));
+const AdminPerformanceSettings = lazy(() => import("./pages/admin/AdminPerformanceSettings"));
+const AdminPerformanceRole = lazy(() => import("./pages/admin/AdminPerformanceRole"));
+const AdminPerformanceOrg = lazy(() => import("./pages/admin/AdminPerformanceOrg"));
+const AdminPerformanceTargets = lazy(() => import("./pages/admin/AdminPerformanceTargets"));
+const AdminPerformanceEntries = lazy(() => import("./pages/admin/AdminPerformanceEntries"));
+const AdminPerformanceAppraisals = lazy(() => import("./pages/admin/AdminPerformanceAppraisals"));
+const AdminPerformanceImport = lazy(() => import("./pages/admin/AdminPerformanceImport"));
+const AdminPerformanceAppraisalReview = lazy(() => import("./pages/admin/AdminPerformanceAppraisalReview"));
+const AdminPerformanceReports = lazy(() => import("./pages/admin/AdminPerformanceReports"));
+const AdminPerformanceGovernance = lazy(() => import("./pages/admin/AdminPerformanceGovernance"));
+const AdminPerformanceOps = lazy(() => import("./pages/admin/AdminPerformanceOps"));
+const AdminPerformanceFeedback = lazy(() => import("./pages/admin/AdminPerformanceFeedback"));
+const AdminPerformancePack = lazy(() => import("./pages/admin/AdminPerformancePack"));
+const AdminPerformanceCascade = lazy(() => import("./pages/admin/AdminPerformanceCascade"));
+const AdminPerformanceSuggestions = lazy(() => import("./pages/admin/AdminPerformanceSuggestions"));
+const AdminPerformanceAppraisal = lazy(() => import("./pages/admin/AdminPerformanceAppraisal"));
+
 //ATS
 const AdminATS = lazy(() => import("./pages/admin/AdminATS"));
 const AdminATSConfig = lazy(() => import("./pages/admin/AdminATSConfig"));
@@ -124,6 +144,24 @@ function AdminApp() {
             <Route path="users" element={<AdminUsers />} />
             <Route path="role-permissions" element={<AdminRolePermissions />} />
             <Route path="loan-routing" element={<AdminLoanRouting />} />
+            <Route path="my-performance" element={<AdminMyPerformance />} />
+            <Route path="performance" element={<AdminPerformance />} />
+            <Route path="performance/org" element={<AdminPerformanceOrg />} />
+            <Route path="performance/targets" element={<AdminPerformanceTargets />} />
+            <Route path="performance/entries" element={<AdminPerformanceEntries />} />
+            <Route path="performance/import" element={<AdminPerformanceImport />} />
+            <Route path="performance/reports" element={<AdminPerformanceReports />} />
+            <Route path="performance/governance" element={<AdminPerformanceGovernance />} />
+            <Route path="performance/operations" element={<AdminPerformanceOps />} />
+            <Route path="performance/feedback" element={<AdminPerformanceFeedback />} />
+            <Route path="performance/cascade" element={<AdminPerformanceCascade />} />
+            <Route path="performance/pack" element={<AdminPerformancePack />} />
+            <Route path="performance/suggestions" element={<AdminPerformanceSuggestions />} />
+            <Route path="performance/appraisals" element={<AdminPerformanceAppraisals />} />
+            <Route path="performance/appraisals/:appraisalId" element={<AdminPerformanceAppraisal />} />
+            <Route path="performance/appraisals/:appraisalId/review" element={<AdminPerformanceAppraisalReview />} />
+            <Route path="performance-settings" element={<AdminPerformanceSettings />} />
+            <Route path="performance-settings/roles/:roleId" element={<AdminPerformanceRole />} />
             <Route path="ats" element={<AdminATS />} />
             <Route path="ats/config/:jobId" element={<AdminATSConfig />} />
             <Route path="ats/candidates/:applicationId" element={<AdminATSCandidate />} />
