@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import {
-  applyPlacement, applySetup, closeUnit, cleanUpDuplicates, getUnitDuplicates, linkUnitToBranch, removeEmptyUnit, createRegion, createUnit, getOrgLayout, getPlacement, getStaff, moveUnitToRegion, renameRegion, retireRegion,
+  addDebtCollectionUnits, applyPlacement, applySetup, closeUnit, cleanUpDuplicates, getUnitDuplicates, linkUnitToBranch, removeEmptyUnit, createRegion, createUnit, getOrgLayout, getPlacement, getStaff, moveUnitToRegion, renameRegion, retireRegion,
   setRegionManager, setUnitManager,
   type DuplicatePair, type LayoutUnit, type OrgLayout, type PlacementPreview,
 } from "../../../lib/performanceApi";
@@ -53,7 +53,8 @@ export default function OrgEditor({ canWrite, canPlace, onChanged }: { canWrite:
   function UnitRow({ u, regionId }: { u: LayoutUnit; regionId: string | null }) {
     const kind = KIND[u.kind] ?? KIND.head_office;
     return (
-      <li className={`flex flex-col gap-3 px-4 py-3 md:grid md:items-center ${COLS}`}>
+      <li>
+        <div className={`flex flex-col gap-3 px-4 py-3 md:grid md:items-center ${COLS}`}>
         <div className="min-w-0">
           <div className="truncate text-sm font-semibold text-ink-900">{u.name}</div>
           <div className="mt-1 flex items-center gap-2 text-xs text-ink-500">
@@ -103,6 +104,27 @@ export default function OrgEditor({ canWrite, canPlace, onChanged }: { canWrite:
             </div>
           </>
         )}
+        </div>
+        {u.children.map((c) => (
+          <div key={c.id} className={`flex flex-col gap-2 pb-3 pl-8 pr-4 md:grid md:items-center ${COLS}`}>
+            <div className="min-w-0 border-l-2 border-mist-200 pl-3">
+              <div className="truncate text-sm font-medium text-ink-900">{c.name}</div>
+              <div className="mt-0.5 flex items-center gap-2 text-xs text-ink-500">
+                <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${KIND.team.cls}`}>Under {u.name}</span>
+                <span>{c.staff} staff</span>
+              </div>
+            </div>
+            {canWrite && (
+              <label className="block">
+                <FieldLabel>Unit manager</FieldLabel>
+                <select aria-label={`Manager of ${c.name}`} className={field} value={c.manager_profile_id ?? ""} disabled={busy} onChange={(e) => void run(() => setUnitManager(c.id, e.target.value || null), "Manager saved.")}>
+                  <option value="">No unit manager</option>
+                  {staff.map((s) => <option key={s.id} value={s.id}>{s.full_name}</option>)}
+                </select>
+              </label>
+            )}
+          </div>
+        ))}
       </li>
     );
   }
@@ -154,6 +176,12 @@ export default function OrgEditor({ canWrite, canPlace, onChanged }: { canWrite:
         <p className="mb-3 text-xs text-ink-500">
           This is the structure reports and targets use. Branches come from the website's branch list (that list is never changed here). Create regions, move each branch or team to a region, and set who manages each.
         </p>
+        {layout.debt_units_missing > 0 && canWrite && (
+          <div role="status" className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-mist-200 bg-mist-50 p-2.5 text-xs text-ink-700">
+            <p>{layout.debt_units_missing} branch{layout.debt_units_missing === 1 ? "" : "es"} {layout.debt_units_missing === 1 ? "doesn't" : "don't"} have a Debt Collection unit yet. Each branch gets its own, under the branch and in its region.</p>
+            <button type="button" className={btn} disabled={busy} onClick={() => void run(() => addDebtCollectionUnits(), "Debt Collection added to every branch.")}>Add Debt Collection to every branch</button>
+          </div>
+        )}
         {layout.branches_without_unit.length > 0 && canWrite && (
           <div role="status" className="mb-3 space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900">
             <p>{layout.branches_without_unit.length} branch{layout.branches_without_unit.length === 1 ? "" : "es"} on the website list {layout.branches_without_unit.length === 1 ? "isn't" : "aren't"} linked to a performance unit yet. If the branch was brought in by the Excel import, link it to that unit rather than creating a new one.</p>

@@ -49,6 +49,7 @@ export const ORG_CHART_CSS = `
 .orgc-pick { cursor: pointer; }
 .orgc-pick:hover { border-color: var(--color-ink-500); }
 .orgc-pick:focus-visible { outline: 2px solid var(--color-ember-500); outline-offset: 2px; }
+.orgc-card.orgc-copy { border-style: dashed; }
 .orgc-card.orgs-chain { border-color: var(--color-ember-500); box-shadow: 0 0 0 1px var(--color-ember-500); }
 .orgc-card.orgs-selected { border-color: var(--color-ember-500); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-ember-500) 40%, transparent); }
 `;

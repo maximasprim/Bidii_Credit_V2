@@ -124,6 +124,7 @@ export type ScalePreview = {
 export type PerformanceUnit = {
   id: string;
   name: string;
+  parent_unit_id?: string | null;
   kind: "branch" | "team" | "head_office";
   branch_id: string | null;
   manager_profile_id: string | null;
@@ -340,8 +341,9 @@ export type StructPerson = {
   is_active: boolean;
   unit_id: string | null;
   manager_id: string | null;
+  covers: string[]; // other units they also work in
 };
-export type StructUnit = { id: string; name: string; kind: string; manager_profile_id: string | null; region_id: string | null };
+export type StructUnit = { id: string; name: string; kind: string; manager_profile_id: string | null; region_id: string | null; parent_unit_id: string | null };
 export type StructRegion = { id: string; name: string; manager_profile_id: string | null };
 export type OrgStructure = { people: StructPerson[]; units: StructUnit[]; regions: StructRegion[] };
 export const getOrgStructure = (includeInactive = false) =>
@@ -1163,8 +1165,14 @@ export const restoreImportVersion = (id: string, reason: string) =>
 export const labelImportVersion = (id: string, label: string | null) => adminPut<{ message: string }>(`${IMPORT}/${id}/label`, { label });
 
 // ---- Organisation editor and placement -----------------------------------------------------------------------------
-export type LayoutUnit = { id: string; name: string; kind: "branch" | "team" | "head_office"; branch_id: string | null; branch_name: string | null; staff: number; manager_profile_id: string | null; manager_name: string | null };
+export type LayoutChild = { id: string; name: string; kind: "branch" | "team" | "head_office"; staff: number; manager_profile_id: string | null; manager_name: string | null };
+export type LayoutUnit = {
+  id: string; name: string; kind: "branch" | "team" | "head_office"; branch_id: string | null; branch_name: string | null; staff: number;
+  manager_profile_id: string | null; manager_name: string | null;
+  children: LayoutChild[]; // units under this branch (its Debt Collection)
+};
 export type OrgLayout = {
+  debt_units_missing: number; // open branches that have no Debt Collection unit yet
   all_branches: { id: string; name: string; unit_id: string | null; unit_empty: boolean }[];
   regions: { id: string; name: string; manager_profile_id: string | null; manager_name: string | null; units: LayoutUnit[] }[];
   units_without_region: LayoutUnit[];
@@ -1187,6 +1195,13 @@ export const setRegionManager = (id: string, manager_profile_id: string | null) 
 export const retireRegion = (id: string) => adminPatch<unknown>(`${BASE}/regions/${id}`, { is_active: false });
 export const createUnit = (b: { name: string; kind: "branch" | "team" | "head_office"; branch_id?: string | null }) => adminPost<unknown>(`${BASE}/units`, b);
 export const setUnitManager = (id: string, manager_profile_id: string | null) => adminPatch<unknown>(`${BASE}/units/${id}`, { manager_profile_id });
+export const addDebtCollectionUnits = () => adminPost<{ created: number; adopted: number }>(`${BASE}/org-setup/debt-collection-units`, {});
+
+// Units someone works in besides their main one (a debt collector covering several branches).
+export type StaffCoverage = { profile_id: string; main_unit_id: string | null; units: { id: string; name: string; kind: string; parent_unit_id: string | null; is_active: boolean }[] };
+export const getStaffCoverage = (profileId: string) => adminGet<StaffCoverage>(`${BASE}/staff/${profileId}/coverage`);
+export const setStaffCoverage = (profileId: string, unitIds: string[]) => adminPut<StaffCoverage>(`${BASE}/staff/${profileId}/coverage`, { unit_ids: unitIds });
+
 export const moveUnitToRegion = (id: string, region_id: string | null) => adminPut<unknown>(`${BASE}/units/${id}/region`, { region_id });
 
 export type DuplicatePair = { keep_id: string; keep_name: string; keep_staff: number; remove_id: string; remove_name: string; link_branch_id: string | null; link_branch_name: string | null; use_name: string };

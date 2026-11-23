@@ -25,7 +25,9 @@ export type ChartNode = {
   led?: string; // group: "Regional manager: Mary Njeri"
   reportsTo?: string; // who this card's person (or group lead) reports to, when the card above is not their manager
   members?: { id: string; name: string; role: string | null }[]; // board / directors tiers
-  people: number; // people in or under this node
+  note?: string; // person: "Also covers Thika, Ruiru" (or "Main unit: Karatina" on a copy)
+  copy?: boolean; // person: a second card for someone who covers more than one branch (the first card is their main unit)
+  people: number; // distinct people in or under this node
   children: ChartNode[];
 };
 
@@ -47,7 +49,7 @@ export function tierOf(p: StructPerson): Tier {
 
 export const kindLabel = (kind: string) => (kind === "head_office" ? "Head office" : kind === "team" ? "Team" : "Branch");
 
-type Ctx = { byId: Map<string, StructPerson>; kids: Map<string, StructPerson[]>; tier: Map<string, Tier>; unitName: Map<string, string> };
+type Ctx = { byId: Map<string, StructPerson>; kids: Map<string, StructPerson[]>; tier: Map<string, Tier>; unitName: Map<string, string>; units: Map<string, StructUnit> };
 
 function index(data: OrgStructure): Ctx {
   const byId = new Map(data.people.map((p) => [p.id, p]));
@@ -55,10 +57,20 @@ function index(data: OrgStructure): Ctx {
   for (const p of [...data.people].sort((a, b) => a.full_name.localeCompare(b.full_name))) {
     if (p.manager_id && byId.has(p.manager_id)) kids.set(p.manager_id, [...(kids.get(p.manager_id) ?? []), p]);
   }
-  return { byId, kids, tier: new Map(data.people.map((p) => [p.id, tierOf(p)])), unitName: new Map(data.units.map((u) => [u.id, u.name])) };
+  return { byId, kids, tier: new Map(data.people.map((p) => [p.id, tierOf(p)])), unitName: new Map(data.units.map((u) => [u.id, u.name])), units: new Map(data.units.map((u) => [u.id, u])) };
 }
 
 const name = (ctx: Ctx, id: string | null | undefined) => (id ? ctx.byId.get(id)?.full_name : undefined);
+/** "Thika" for "Thika Debt Collection": the branch a unit sits under, else its own name. */
+const shortUnit = (ctx: Ctx, id: string) => {
+  const u = ctx.units.get(id);
+  const parent = u?.parent_unit_id ? ctx.units.get(u.parent_unit_id) : undefined;
+  return parent?.name ?? u?.name ?? "another unit";
+};
+const coverNote = (ctx: Ctx, p: StructPerson) => {
+  const names = (p.covers ?? []).filter((id) => id !== p.unit_id && ctx.units.has(id)).map((id) => shortUnit(ctx, id));
+  return names.length ? `Also covers ${names.join(", ")}` : undefined;
+};
 const roleOf = (p: StructPerson) => [p.role_name, p.level_label].filter(Boolean).join(" · ");
 
 /** One person and, recursively, everyone who reports to them (optionally only those inside `within`). A reporting loop is cut, never followed. */
@@ -69,7 +81,7 @@ function personNode(ctx: Ctx, p: StructPerson, seen: Set<string>, opts: { within
     .map((c) => personNode(ctx, c, seen, opts));
   return {
     id: `p:${p.id}`, kind: "person", person: p, title: p.full_name, sub: roleOf(p) || undefined,
-    detail: opts.showUnit && p.unit_id ? ctx.unitName.get(p.unit_id) : undefined, people: 1 + children.reduce((n, c) => n + c.people, 0), children,
+    detail: opts.showUnit && p.unit_id ? ctx.unitName.get(p.unit_id) : undefined, note: coverNote(ctx, p), people: 1 + children.reduce((n, c) => n + c.people, 0), children,
   };
 }
 
@@ -86,10 +98,14 @@ function tidy(node: ChartNode): void {
   }
 }
 
-function recount(node: ChartNode): number {
-  const below = node.children.reduce((n, c) => n + recount(c), 0);
-  node.people = (node.kind === "person" ? 1 : node.members ? node.members.length : 0) + below;
-  return node.people;
+/** People are counted once however many cards they have (someone covering three branches is one person in the region's total). */
+function recount(node: ChartNode): Set<string> {
+  const ids = new Set<string>();
+  if (node.kind === "person" && node.person) ids.add(node.person.id);
+  node.members?.forEach((m) => ids.add(m.id));
+  node.children.forEach((c) => recount(c).forEach((i) => ids.add(i)));
+  node.people = ids.size;
+  return ids;
 }
 
 const finish = (roots: ChartNode[]) => { roots.forEach(tidy); roots.forEach(recount); };
@@ -204,11 +220,26 @@ export function buildRegions(data: OrgStructure): ChartTree {
   };
 
   const staff = data.people.filter((p) => ctx.tier.get(p.id) === "staff");
+  const isChild = (u: StructUnit) => !!u.parent_unit_id && ctx.units.has(u.parent_unit_id);
+  const topUnits = data.units.filter((u) => !isChild(u));
+
+  /** Someone who covers this unit without it being their main one: a second card, marked as a copy. */
+  const coverers = (u: StructUnit): ChartNode[] =>
+    staff.filter((p) => p.unit_id !== u.id && (p.covers ?? []).includes(u.id)).map((p) => {
+      const boss = name(ctx, p.manager_id);
+      return {
+        id: `p:${p.id}@${u.id}`, kind: "person" as const, person: p, copy: true, title: p.full_name, sub: roleOf(p) || undefined,
+        note: p.unit_id ? `Main unit: ${shortUnit(ctx, p.unit_id)}` : undefined, reportsTo: boss, people: 1, children: [],
+      };
+    });
+
   const unitNode = (u: StructUnit): ChartNode => {
     const mgr = name(ctx, u.manager_profile_id);
+    const under = data.units.filter((c) => c.parent_unit_id === u.id).map(unitNode);
     return {
-      id: `g:unit:${u.id}`, kind: "group", groupKind: "unit", label: kindLabel(u.kind), title: u.name,
-      led: mgr ? `Managed by ${mgr}` : undefined, people: 0, children: forest(staff.filter((p) => p.unit_id === u.id)),
+      id: `g:unit:${u.id}`, kind: "group", groupKind: "unit", label: u.parent_unit_id && ctx.units.has(u.parent_unit_id) ? `${kindLabel(u.kind)} under ${shortUnit(ctx, u.id)}` : kindLabel(u.kind),
+      title: u.name, led: mgr ? `Managed by ${mgr}` : undefined, people: 0,
+      children: [...forest(staff.filter((p) => p.unit_id === u.id)), ...coverers(u), ...under],
     };
   };
 
@@ -217,14 +248,14 @@ export function buildRegions(data: OrgStructure): ChartTree {
     const node: ChartNode = {
       id: `g:region:${r.id}`, kind: "group", groupKind: "region", label: "Region", title: r.name,
       led: mgr ? `Regional manager: ${mgr.full_name}` : undefined, people: 0,
-      children: data.units.filter((u) => u.region_id === r.id).map(unitNode),
+      children: topUnits.filter((u) => u.region_id === r.id).map(unitNode),
     };
     const boss = name(ctx, mgr?.manager_id);
     if (boss) node.reportsTo = boss;
     return node;
   });
 
-  const noRegion = data.units.filter((u) => !u.region_id);
+  const noRegion = topUnits.filter((u) => !u.region_id);
   const direct = noRegion.filter((u) => u.kind !== "branch").map(unitNode);
   const strayBranches = noRegion.filter((u) => u.kind === "branch").map(unitNode);
   const strayGroup: ChartNode[] = strayBranches.length

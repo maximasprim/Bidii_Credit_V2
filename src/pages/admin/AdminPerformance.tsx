@@ -19,6 +19,7 @@ import {
 import { useAdminAuth } from "../../lib/AdminAuthContext";
 import { usePageMeta } from "../../lib/usePageMeta";
 import StatusBadge from "../../components/admin/StatusBadge";
+import StaffCoverageEditor from "../../components/admin/performance/StaffCoverageEditor";
 
 const STATUSES: StaffStatus[] = ["active", "probation", "pip", "exited"];
 const input = "rounded-lg border border-mist-200 bg-surface px-3 py-2 text-sm text-ink-700 focus:outline-none";
@@ -301,6 +302,9 @@ export default function AdminPerformance() {
                 </select>
               </label>
             </div>
+            {editingId && editingId !== "new" && (
+              <StaffCoverageEditor profileId={editingId} mainUnitId={form.unit_id} units={units} collector={roles.find((r) => r.id === form.performance_role_id)?.key === "debt_recovery"} />
+            )}
             <div className="flex justify-end gap-2 border-t border-mist-100 pt-3">
               <button disabled={saving} className="flex items-center gap-1.5 rounded-full bg-ink-900 px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-60">
                 <Check size={13} /> {saving ? "Saving…" : "Save"}

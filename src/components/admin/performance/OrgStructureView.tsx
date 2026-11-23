@@ -31,15 +31,16 @@ function PersonCard({ node, ui, compact }: { node: ChartNode; ui: Ui; compact?: 
   const p = node.person!;
   const lead = node.children.length > 0;
   const expanded = ui.open.has(node.id);
-  const cls = ["orgc-card", "orgc-pick", lead ? "orgc-lead" : "", compact ? "orgc-compact" : "", p.is_active ? "" : "orgc-gone",
+  const cls = ["orgc-card", "orgc-pick", lead ? "orgc-lead" : "", compact ? "orgc-compact" : "", p.is_active ? "" : "orgc-gone", node.copy ? "orgc-copy" : "",
     ui.chain.has(p.id) ? "orgs-chain" : "", ui.selected === p.id ? "orgs-selected" : ""].filter(Boolean).join(" ");
   return (
     <div id={`orgs-${node.id}`} className={cls} role="button" tabIndex={0} aria-pressed={ui.selected === p.id}
-      aria-label={`${p.full_name}${node.sub ? `, ${node.sub}` : ""}. Show who they report to.`}
+      aria-label={`${p.full_name}${node.sub ? `, ${node.sub}` : ""}${node.note ? `, ${node.note}` : ""}. Show who they report to.`}
       onClick={() => ui.select(p.id)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); ui.select(p.id); } }}>
       <div className={`truncate text-sm font-semibold ${p.is_active ? "text-ink-900" : "text-ink-500 line-through"}`} title={node.title}>{node.title}</div>
       {node.sub && <div className="truncate text-xs text-ink-700" title={node.sub}>{node.sub}</div>}
       {node.detail && <div className="truncate text-xs text-ink-500" title={node.detail}>{node.detail}</div>}
+      {node.note && <div className="mt-0.5 truncate text-xs font-medium text-ink-700" title={node.note}>{node.note}</div>}
       {node.reportsTo && <div className="mt-1 flex items-center gap-1 truncate text-xs text-ink-500" title={`Reports to ${node.reportsTo}`}><CornerLeftUp size={11} className="shrink-0" aria-hidden="true" />{node.reportsTo}</div>}
       {p.status !== "active" && <div className="mt-1.5"><StatusBadge status={p.status} /></div>}
       {lead && <Toggle node={node} expanded={expanded} ui={ui} />}

@@ -258,7 +258,8 @@ export default function AdminLayout() {
           </nav>
         </aside>
 
-        <main className="min-w-0 flex-1 overflow-y-auto">
+        {/* relative: anything absolutely positioned inside a page (the hidden sr-only labels and file inputs) is contained and scrolls with this area, instead of landing far down the browser page and making it scroll too */}
+        <main className="relative min-w-0 flex-1 overflow-y-auto">
           <div className="mx-auto max-w-8xl px-2 py-3">
             {showPerformanceTabs && <PerformanceTabs />}
             <Outlet />
