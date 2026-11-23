@@ -403,7 +403,18 @@ export type TargetRequest = {
   can_decide: boolean;
 };
 
-export const getLevels = (roleId?: string) => adminGet<{ items: PerformanceLevel[] }>(`${BASE}/levels${roleId ? `?role_id=${encodeURIComponent(roleId)}` : ""}`);
+export const getLevels = (roleId?: string, includeInactive = false) => {
+  const q = new URLSearchParams();
+  if (roleId) q.set("role_id", roleId);
+  if (includeInactive) q.set("include_inactive", "true");
+  const qs = q.toString();
+  return adminGet<{ items: PerformanceLevel[] }>(`${BASE}/levels${qs ? `?${qs}` : ""}`);
+};
+export type LevelInput = { label: string; rank: number; default_targets: Record<string, number>; note: string | null };
+export const createLevel = (roleId: string, payload: LevelInput) =>
+  adminPost<{ message: string; data: PerformanceLevel }>(`${BASE}/levels`, { role_id: roleId, ...payload });
+export const updateLevel = (id: string, payload: Partial<LevelInput> & { is_active?: boolean }) =>
+  adminPatch<{ message: string; data: PerformanceLevel }>(`${BASE}/levels/${encodeURIComponent(id)}`, payload);
 export const getStaffTargets = (profileId: string, month?: string) =>
   adminGet<StaffTargets>(`${BASE}/staff/${profileId}/targets${month ? `?month=${month}` : ""}`);
 export const setStaffTarget = (profileId: string, payload: { kpi_key: string; effective_from: string; value: number; reason: string }) =>

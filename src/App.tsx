@@ -54,6 +54,7 @@ const AdminPerformanceSettings = lazy(() => import("./pages/admin/AdminPerforman
 const AdminPerformanceRole = lazy(() => import("./pages/admin/AdminPerformanceRole"));
 const AdminPerformanceOrg = lazy(() => import("./pages/admin/AdminPerformanceOrg"));
 const AdminPerformanceTargets = lazy(() => import("./pages/admin/AdminPerformanceTargets"));
+const AdminPerformanceLevels = lazy(() => import("./pages/admin/AdminPerformanceLevels"));
 const AdminPerformanceEntries = lazy(() => import("./pages/admin/AdminPerformanceEntries"));
 const AdminPerformanceAppraisals = lazy(() => import("./pages/admin/AdminPerformanceAppraisals"));
 const AdminPerformanceImport = lazy(() => import("./pages/admin/AdminPerformanceImport"));
@@ -148,6 +149,7 @@ function AdminApp() {
             <Route path="performance" element={<AdminPerformance />} />
             <Route path="performance/org" element={<AdminPerformanceOrg />} />
             <Route path="performance/targets" element={<AdminPerformanceTargets />} />
+            <Route path="performance/levels" element={<AdminPerformanceLevels />} />
             <Route path="performance/entries" element={<AdminPerformanceEntries />} />
             <Route path="performance/import" element={<AdminPerformanceImport />} />
             <Route path="performance/reports" element={<AdminPerformanceReports />} />
