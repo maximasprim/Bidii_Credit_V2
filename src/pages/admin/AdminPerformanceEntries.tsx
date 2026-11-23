@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertCircle, Check } from "lucide-react";
 import { usePageMeta } from "../../lib/usePageMeta";
@@ -10,19 +10,26 @@ const card = "rounded-2xl border border-mist-200 bg-surface p-5";
 const heading = { color: "var(--color-ink-900)" } as const;
 const btn = "rounded-lg border border-mist-200 px-3 py-2 text-sm font-semibold text-ink-700 disabled:opacity-50";
 
-function Queue() {
-  const [items, setItems] = useState<QueueItem[] | null>(null);
+type QueueInitial = { items: QueueItem[] | null; error: string | null };
+
+/** `initial` is the queue the page already fetched, so it shows with the rest of the page instead of after its own request. */
+function Queue({ initial }: { initial: QueueInitial }) {
+  const [items, setItems] = useState<QueueItem[] | null>(initial.items);
+  const have = useRef(initial.items ? "0" : "");
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [reason, setReason] = useState("");
   const [tick, setTick] = useState(0);
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(initial.error ? { ok: false, text: initial.error } : null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    const key = String(tick);
+    if (have.current === key || (tick === 0 && initial.error)) return; // already holding exactly this (or it failed and the message is shown)
     let cancelled = false;
     getEntryQueue()
       .then((q) => {
         if (!cancelled) {
+          have.current = key;
           setItems(q.items);
           setPicked(new Set());
         }
@@ -33,7 +40,7 @@ function Queue() {
     return () => {
       cancelled = true;
     };
-  }, [tick]);
+  }, [tick, initial.error]);
 
   async function decide(approve: boolean) {
     setBusy(true);
@@ -109,26 +116,48 @@ function Queue() {
   );
 }
 
+type Boot = { queue: QueueInitial; staff: StaffProfile[]; staffError: string | null };
+
+/** Fetches the verification queue and the staff list together and shows the page only when both have arrived. */
 export default function AdminPerformanceEntries() {
   usePageMeta("Monthly figures");
-  const [staff, setStaff] = useState<StaffProfile[]>([]);
-  const [profileId, setProfileId] = useState("");
-  const [ym, setYm] = useState(() => new Date().toISOString().slice(0, 7));
-  const [error, setError] = useState<string | null>(null);
+  const [boot, setBoot] = useState<Boot | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    getStaff()
-      .then((s) => {
-        if (!cancelled) setStaff(s.items);
-      })
-      .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Couldn't load staff.");
+    Promise.allSettled([getEntryQueue(), getStaff()]).then(([q, s]) => {
+      if (cancelled) return;
+      const why = (r: PromiseRejectedResult, fallback: string) => (r.reason instanceof Error ? r.reason.message : fallback);
+      setBoot({
+        queue: q.status === "fulfilled" ? { items: q.value.items, error: null } : { items: null, error: why(q, "Couldn't load the queue.") },
+        staff: s.status === "fulfilled" ? s.value.items : [],
+        staffError: s.status === "rejected" ? why(s, "Couldn't load staff.") : null,
       });
+    });
     return () => {
       cancelled = true;
     };
   }, []);
+
+  if (!boot) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <Link to="/admin/performance" className="mb-2 inline-block text-xs font-semibold text-ink-500">← Staff Performance</Link>
+          <h1 className="font-display text-lg font-bold" style={heading}>Monthly figures</h1>
+        </div>
+        <p role="status" className="text-sm text-ink-500">Loading…</p>
+      </div>
+    );
+  }
+  return <EntriesPage boot={boot} />;
+}
+
+function EntriesPage({ boot }: { boot: Boot }) {
+  const staff = boot.staff;
+  const error = boot.staffError;
+  const [profileId, setProfileId] = useState("");
+  const [ym, setYm] = useState(() => new Date().toISOString().slice(0, 7));
 
   return (
     <div className="space-y-6">
@@ -138,7 +167,7 @@ export default function AdminPerformanceEntries() {
         <p className="text-sm text-ink-500">Verify your team's figures, or enter figures for someone who doesn't have a login.</p>
       </div>
       {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-      <Queue />
+      <Queue initial={boot.queue} />
       <section className={card}>
         <h2 className="mb-3 font-display text-sm font-bold" style={heading}>Enter figures for someone</h2>
         <div className="mb-4 flex flex-wrap items-end gap-3">

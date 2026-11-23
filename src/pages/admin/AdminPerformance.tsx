@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertCircle, Plus, Pencil, Check, X } from "lucide-react";
 import {
   createStaff,
@@ -106,19 +106,28 @@ export default function AdminPerformance() {
   const [reloadTick, setReloadTick] = useState(0);
   const reload = () => setReloadTick((t) => t + 1);
 
+  // Everything the page shows (staff, managers, roles, branches/teams, levels) is fetched together and set together, so the
+  // filters and the table appear at once instead of filling in one after another. Units and levels are fetched on the first
+  // load only; later filter changes refresh just the staff.
+  const lookupsLoaded = useRef(false);
   useEffect(() => {
     let cancelled = false;
-    Promise.all([getStaff({ q, role_id: roleFilter, unit_id: unitFilter, include_inactive: showInactive }), getPerformanceRoles()])
-      .then(([s, r]) => {
+    Promise.all([
+      getStaff({ q, role_id: roleFilter, unit_id: unitFilter, include_inactive: showInactive }),
+      getPerformanceRoles(),
+      getStaff().then((all) => all.items).catch(() => null),
+      lookupsLoaded.current ? Promise.resolve(null) : getUnits().then((d) => d.items).catch(() => null),
+      lookupsLoaded.current ? Promise.resolve(null) : getLevels().then((d) => d.items).catch(() => null),
+    ])
+      .then(([s, r, all, u, l]) => {
         if (cancelled) return;
         setStaff(s.items);
         setRoles(r.items);
+        if (all) setManagers(all);
+        if (u) setUnits(u);
+        if (l) setLevels(l);
+        if (u || l) lookupsLoaded.current = true;
         setError(null);
-        getStaff()
-          .then((all) => {
-            if (!cancelled) setManagers(all.items);
-          })
-          .catch(() => undefined);
       })
       .catch((e) => {
         if (!cancelled) setError(e instanceof Error ? e.message : "Couldn't load staff.");
@@ -130,11 +139,6 @@ export default function AdminPerformance() {
       cancelled = true;
     };
   }, [q, roleFilter, unitFilter, showInactive, reloadTick]);
-
-  useEffect(() => {
-    getUnits().then((d) => setUnits(d.items)).catch(() => undefined);
-    getLevels().then((d) => setLevels(d.items)).catch(() => undefined);
-  }, []);
 
   useEffect(() => {
     if (!editingId) return;
@@ -318,24 +322,26 @@ export default function AdminPerformance() {
       )}
 
       <div className="rounded-2xl border border-mist-200 bg-surface p-5">
-        <div className="mb-4 flex flex-wrap gap-2">
-          <input className={input} placeholder="Search name…" value={q} onChange={(e) => setQ(e.target.value)} />
-          <select className={input} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
-            <option value="">All roles</option>
-            {roles.map((r) => (
-              <option key={r.id} value={r.id}>{r.name}</option>
-            ))}
-          </select>
-          <select className={input} value={unitFilter} onChange={(e) => setUnitFilter(e.target.value)}>
-            <option value="">All branches and teams</option>
-            {units.map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
-          <label className="flex items-center gap-2 text-xs text-ink-500">
-            <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} /> Show exited / inactive
-          </label>
-        </div>
+        {!loading && (
+          <div className="mb-4 flex flex-wrap gap-2">
+            <input className={input} placeholder="Search name…" value={q} onChange={(e) => setQ(e.target.value)} />
+            <select className={input} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+              <option value="">All roles</option>
+              {roles.map((r) => (
+                <option key={r.id} value={r.id}>{r.name}</option>
+              ))}
+            </select>
+            <select className={input} value={unitFilter} onChange={(e) => setUnitFilter(e.target.value)}>
+              <option value="">All branches and teams</option>
+              {units.map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+            <label className="flex items-center gap-2 text-xs text-ink-500">
+              <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} /> Show exited / inactive
+            </label>
+          </div>
+        )}
 
         {loading ? (
           <p className="text-sm text-ink-500">Loading…</p>

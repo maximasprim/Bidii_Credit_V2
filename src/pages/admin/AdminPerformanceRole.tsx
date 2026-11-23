@@ -58,7 +58,8 @@ export default function AdminPerformanceRole() {
   usePageMeta("Job role - JD & KPIs");
   const { roleId = "" } = useParams();
   const navigate = useNavigate();
-  const isAdmin = getCurrentAdminRole() === "admin";
+  const role = getCurrentAdminRole();
+  const isAdmin = role === "admin" || role === "hr"; // administrators and HR can edit job descriptions
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [options, setOptions] = useState<JDOptions | null>(null);
@@ -449,7 +450,7 @@ export default function AdminPerformanceRole() {
           <button type="button" className={`${btn} self-end`} onClick={() => navigate("/admin/performance-settings")}>Close</button>
         </div>
       ) : (
-        <p className="text-xs text-ink-500">{isAdmin ? "Switch back to the current version to edit." : "Only administrators can edit job descriptions."}</p>
+        <p className="text-xs text-ink-500">{isAdmin ? "Switch back to the current version to edit." : "Only administrators and HR can edit job descriptions."}</p>
       )}
       {msg && (
         <p role="status" className={`flex items-center gap-1.5 text-sm ${msg.ok ? "text-green-700" : "text-red-600"}`}>

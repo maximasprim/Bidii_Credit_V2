@@ -1,20 +1,25 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertCircle, AlertTriangle, ChevronDown, ChevronRight, Info } from "lucide-react";
 import { usePageMeta } from "../../lib/usePageMeta";
 import { getCurrentAdminRole } from "../../lib/adminApi";
 import StatusBadge from "../../components/admin/StatusBadge";
-import OrgEditor from "../../components/admin/performance/OrgEditor";
+import OrgEditor, { type OrgEditorInitial } from "../../components/admin/performance/OrgEditor";
 import OrgChartView from "../../components/admin/performance/OrgChartView";
 import OrgStructureView from "../../components/admin/performance/OrgStructureView";
 import {
   applySetup,
   getOrgHealth,
+  getOrgLayout,
+  getOrgStructure,
   getOrgTree,
   getSetupPreview,
+  getStaff,
+  getUnitDuplicates,
   type OrgHealth,
   type OrgIssue,
   type OrgNode,
+  type OrgStructure,
   type SetupPreview,
   type SetupResult,
 } from "../../lib/performanceApi";
@@ -105,6 +110,7 @@ function Health({ health }: { health: OrgHealth }) {
 
 function Setup() {
   const [preview, setPreview] = useState<SetupPreview | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
   const [result, setResult] = useState<SetupResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -115,6 +121,7 @@ function Setup() {
     setError(null);
     setResult(null);
     try {
+      setConfirmed(false);
       setPreview(await getSetupPreview());
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't build the proposal.");
@@ -122,13 +129,17 @@ function Setup() {
       setBusy(false);
     }
   }
+  // A structure already exists when any branch has a unit or any proposed region is already there.
+  const hasStructure = !!preview && (preview.branches.some((b) => b.unit_id) || preview.regions.some((r) => r.exists));
   async function apply() {
     if (!preview) return;
+    if (hasStructure && !confirmed) return;
     setBusy(true);
     setError(null);
     try {
       setResult(await applySetup(preview.regions));
       setPreview(null);
+      setConfirmed(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't apply the setup.");
     } finally {
@@ -164,9 +175,18 @@ function Setup() {
               These proposed branches weren't found on the branch list, so they're left out: {preview.unmatched.join(", ")}.
             </p>
           )}
+          {hasStructure && (
+            <label role="alert" className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-900">
+              <input type="checkbox" className="mt-0.5" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
+              <span>
+                A structure already exists. Applying adds only what is missing: it never deletes or moves a unit, region or branch that is already placed,
+                and anything that would have to move is listed as a conflict instead. Tick to confirm you want to apply this over your current setup.
+              </span>
+            </label>
+          )}
           <div className="flex gap-2">
-            <button type="button" className={btn} disabled={busy} onClick={() => void apply()}>Apply this setup</button>
-            <button type="button" className={btn} disabled={busy} onClick={() => setPreview(null)}>Cancel</button>
+            <button type="button" className={btn} disabled={busy || (hasStructure && !confirmed)} onClick={() => void apply()}>Apply this setup</button>
+            <button type="button" className={btn} disabled={busy} onClick={() => { setPreview(null); setConfirmed(false); }}>Cancel</button>
           </div>
         </div>
       )}
@@ -184,18 +204,80 @@ function Setup() {
 type View = "list" | "chart" | "structure";
 const VIEWS: [View, string][] = [["list", "List"], ["chart", "Chart"], ["structure", "Structure"]];
 
+type OrgTreeData = Awaited<ReturnType<typeof getOrgTree>>;
+/** Everything the page needs for its first paint, fetched together. A part that fails is simply absent and loads itself the way it always did. */
+type Boot = {
+  tree: OrgTreeData | null;
+  health: OrgHealth | null;
+  structure: OrgStructure | null;
+  editor: OrgEditorInitial;
+};
+
+const ok = <T,>(r: PromiseSettledResult<T>): T | null => (r.status === "fulfilled" ? r.value : null);
+
+/** Fetches every part of the page at once and shows the page only when they have all arrived (or failed), so nothing pops in afterwards. */
 export default function AdminPerformanceOrg() {
   usePageMeta("Organisation chart");
   const role = getCurrentAdminRole();
   const isAdmin = role === "admin";
   const canSeeHealth = isAdmin || role === "hr";
-  const [roots, setRoots] = useState<OrgNode[]>([]);
-  const [total, setTotal] = useState(0);
-  const [health, setHealth] = useState<OrgHealth | null>(null);
+  const [boot, setBoot] = useState<Boot | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.allSettled([
+      getOrgTree(false),
+      canSeeHealth ? getOrgHealth() : Promise.resolve(null),
+      getOrgStructure(false),
+      canSeeHealth ? getOrgLayout() : Promise.resolve(null),
+      canSeeHealth ? getStaff() : Promise.resolve(null),
+      isAdmin ? getUnitDuplicates() : Promise.resolve(null),
+    ]).then(([tree, health, structure, layout, staff, dups]) => {
+      if (cancelled) return;
+      const staffList = ok(staff);
+      const dupList = ok(dups);
+      setBoot({
+        tree: ok(tree),
+        health: ok(health),
+        structure: ok(structure),
+        editor: {
+          layout: ok(layout),
+          staff: staffList ? staffList.items.map((s) => ({ id: s.id, full_name: s.full_name })) : null,
+          dups: dupList ? dupList.pairs : null,
+        },
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [canSeeHealth, isAdmin]);
+
+  if (!boot) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <Link to="/admin/performance" className="mb-2 inline-block text-xs font-semibold text-ink-500">← Staff Performance</Link>
+          <h1 className="font-display text-lg font-bold" style={heading}>Organisation chart</h1>
+        </div>
+        <p role="status" className="text-sm text-ink-500">Loading the organisation…</p>
+      </div>
+    );
+  }
+  return <OrgPage boot={boot} />;
+}
+
+function OrgPage({ boot }: { boot: Boot }) {
+  const role = getCurrentAdminRole();
+  const isAdmin = role === "admin";
+  const canSeeHealth = isAdmin || role === "hr";
+  const [roots, setRoots] = useState<OrgNode[]>(boot.tree?.roots ?? []);
+  const [total, setTotal] = useState(boot.tree?.total ?? 0);
+  const [health, setHealth] = useState<OrgHealth | null>(boot.health);
+  const haveTree = useRef(boot.tree ? "false|0" : "");
   const [q, setQ] = useState("");
   const [inactive, setInactive] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!boot.tree);
   const [reload, setReload] = useState(0);
   const [view, setView] = useState<View>(() => {
     try {
@@ -209,10 +291,13 @@ export default function AdminPerformanceOrg() {
   }
 
   useEffect(() => {
+    const key = `${inactive}|${reload}`;
+    if (haveTree.current === key) return; // the page already holds exactly this
     let cancelled = false;
     getOrgTree(inactive)
       .then((t) => {
         if (cancelled) return;
+        haveTree.current = key;
         setRoots(t.roots);
         setTotal(t.total);
         setError(null);
@@ -229,7 +314,7 @@ export default function AdminPerformanceOrg() {
   }, [inactive, reload]);
 
   useEffect(() => {
-    if (!canSeeHealth) return;
+    if (!canSeeHealth || boot.health) return;
     let cancelled = false;
     getOrgHealth()
       .then((h) => {
@@ -239,7 +324,7 @@ export default function AdminPerformanceOrg() {
     return () => {
       cancelled = true;
     };
-  }, [canSeeHealth]);
+  }, [canSeeHealth, boot.health]);
 
   const visible = useMemo(() => visibleIds(roots, q), [roots, q]);
 
@@ -257,7 +342,7 @@ export default function AdminPerformanceOrg() {
         </div>
       )}
 
-      {canSeeHealth && <OrgEditor canWrite={isAdmin} canPlace={canSeeHealth} onChanged={() => setReload((n) => n + 1)} />}
+      {canSeeHealth && <OrgEditor canWrite={isAdmin} canPlace={canSeeHealth} onChanged={() => setReload((n) => n + 1)} initial={boot.editor} />}
 
       <section className={card}>
         <div className="mb-3 flex flex-wrap items-center gap-3">
@@ -278,7 +363,7 @@ export default function AdminPerformanceOrg() {
           <span className="text-xs text-ink-400">{total} people</span>
         </div>
         {view === "structure" ? (
-          <OrgStructureView reloadKey={reload} includeInactive={inactive} />
+          <OrgStructureView reloadKey={reload} includeInactive={inactive} initialData={boot.structure} />
         ) : loading ? (
           <p className="text-sm text-ink-500">Loading…</p>
         ) : roots.length === 0 ? (

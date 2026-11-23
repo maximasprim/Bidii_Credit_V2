@@ -27,7 +27,7 @@ const KIND_LABEL: Record<RoleKind, string> = {
 export default function AdminPerformanceSettings() {
   usePageMeta("Performance Settings");
   const { role } = useAdminAuth();
-  const isAdmin = role === "admin";
+  const isAdmin = role === "admin" || role === "hr"; // administrators and HR can view and edit the performance settings
 
   const [cfg, setCfg] = useState<PerformanceConfig | null>(null);
   const [version, setVersion] = useState(0);
@@ -61,7 +61,7 @@ export default function AdminPerformanceSettings() {
     };
   }, [tick]);
 
-  if (!isAdmin) return <p className="text-sm text-ink-500">Only administrators can change performance settings.</p>;
+  if (!isAdmin) return <p className="text-sm text-ink-500">Only administrators and HR can change performance settings.</p>;
   if (error)
     return (
       <div className="flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">

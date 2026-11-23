@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, ChevronRight, CornerLeftUp, Search, X } from "lucide-react";
 import StatusBadge from "../StatusBadge";
 import { getOrgStructure, type OrgStructure } from "../../../lib/performanceApi";
@@ -117,8 +117,10 @@ function Forest({ roots, ui, label }: { roots: ChartNode[]; ui: Ui; label: strin
   );
 }
 
-export default function OrgStructureView({ reloadKey, includeInactive }: { reloadKey: number; includeInactive: boolean }) {
-  const [data, setData] = useState<OrgStructure | null>(null);
+/** `initialData` (optional) is the structure for reloadKey 0 / people who have left hidden, already fetched by the page, so it shows at once. */
+export default function OrgStructureView({ reloadKey, includeInactive, initialData }: { reloadKey: number; includeInactive: boolean; initialData?: OrgStructure | null }) {
+  const [data, setData] = useState<OrgStructure | null>(initialData ?? null);
+  const have = useRef(initialData ? "false|0" : "");
   const [error, setError] = useState<string | null>(null);
   const [lens, setLens] = useState<Lens>(() => {
     try { return localStorage.getItem("bidii-org-lens") === "regions" ? "regions" : "leadership"; } catch { return "leadership"; }
@@ -128,9 +130,11 @@ export default function OrgStructureView({ reloadKey, includeInactive }: { reloa
   const [query, setQuery] = useState("");
 
   useEffect(() => {
+    const key = `${includeInactive}|${reloadKey}`;
+    if (have.current === key) return; // already holding exactly this
     let cancelled = false;
     getOrgStructure(includeInactive)
-      .then((d) => { if (!cancelled) { setData(d); setError(null); } })
+      .then((d) => { if (!cancelled) { have.current = key; setData(d); setError(null); } })
       .catch((e: unknown) => { if (!cancelled) setError(e instanceof Error ? e.message : "The structure couldn't be loaded."); });
     return () => { cancelled = true; };
   }, [reloadKey, includeInactive]);

@@ -36,12 +36,16 @@ const fromLevel = (l: PerformanceLevel): Draft => ({
 
 export default function AdminPerformanceLevels() {
   usePageMeta("Levels");
-  const canEdit = getCurrentAdminRole() === "admin";
+  const adminRole = getCurrentAdminRole();
+  const canEdit = adminRole === "admin" || adminRole === "hr"; // administrators and HR can change levels
 
   const [roles, setRoles] = useState<PerformanceRole[]>([]);
   const [roleId, setRoleId] = useState("");
   const [levels, setLevels] = useState<PerformanceLevel[]>([]);
   const [kpis, setKpis] = useState<Kpi[]>([]);
+  const [rolesDone, setRolesDone] = useState(false);
+  const [loadedFor, setLoadedFor] = useState<string | null>(null); // the role whose levels and KPIs have arrived
+  const [shown, setShown] = useState(false);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [tick, setTick] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -58,6 +62,9 @@ export default function AdminPerformanceLevels() {
       })
       .catch((e) => {
         if (!cancelled) setError(message(e, "Couldn't load the roles."));
+      })
+      .finally(() => {
+        if (!cancelled) setRolesDone(true);
       });
     return () => {
       cancelled = true;
@@ -76,11 +83,18 @@ export default function AdminPerformanceLevels() {
       })
       .catch((e) => {
         if (!cancelled) setError(message(e, "Couldn't load the levels."));
+      })
+      .finally(() => {
+        if (!cancelled) setLoadedFor(activeRole);
       });
     return () => {
       cancelled = true;
     };
   }, [activeRole, tick]);
+
+  // Show the page once the roles, the levels and the KPIs have all arrived, so the table and its columns appear together.
+  const firstReady = rolesDone && (!activeRole || loadedFor === activeRole);
+  if (firstReady && !shown) setShown(true); // sticky: once shown, later refreshes never bring the loading screen back
 
   function startAdd() {
     setNotice(null);
@@ -129,6 +143,18 @@ export default function AdminPerformanceLevels() {
     }
   }
 
+  if (!shown && !error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <Link to="/admin/performance" className="mb-2 inline-block text-xs font-semibold text-ink-500">← Staff Performance</Link>
+          <h1 className="font-display text-lg font-bold" style={heading}>Levels</h1>
+        </div>
+        <p role="status" className="text-sm text-ink-500">Loading levels…</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -174,7 +200,7 @@ export default function AdminPerformanceLevels() {
               </tr>
             </thead>
             <tbody>
-              {levels.map((l) => (
+              {loadedFor === activeRole && levels.map((l) => (
                 <tr key={l.id} className={`border-b border-mist-100 ${l.is_active ? "" : "opacity-60"}`}>
                   <td className="py-2 pr-3">{l.rank}</td>
                   <td className="py-2 pr-3 font-semibold">{l.label}</td>
@@ -189,13 +215,16 @@ export default function AdminPerformanceLevels() {
                   )}
                 </tr>
               ))}
-              {levels.length === 0 && (
+              {loadedFor !== activeRole && (
+                <tr><td className="py-4 text-ink-500" colSpan={kpis.length + 5}>Loading…</td></tr>
+              )}
+              {loadedFor === activeRole && levels.length === 0 && (
                 <tr><td className="py-4 text-ink-500" colSpan={kpis.length + 5}>This role has no levels yet.</td></tr>
               )}
             </tbody>
           </table>
         </div>
-        {!canEdit && <p className="mt-3 text-xs text-ink-500">Only administrators can change levels.</p>}
+        {!canEdit && <p className="mt-3 text-xs text-ink-500">Only administrators and HR can change levels.</p>}
       </section>
 
       {canEdit && draft && (

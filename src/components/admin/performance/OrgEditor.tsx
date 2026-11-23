@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
   addDebtCollectionUnits, applyPlacement, applySetup, closeUnit, cleanUpDuplicates, getUnitDuplicates, linkUnitToBranch, removeEmptyUnit, createRegion, createUnit, getOrgLayout, getPlacement, getStaff, moveUnitToRegion, renameRegion, retireRegion,
@@ -23,9 +23,12 @@ function FieldLabel({ children }: { children: string }) {
   return <span className="mb-1 block text-xs text-ink-500 md:hidden">{children}</span>;
 }
 
-export default function OrgEditor({ canWrite, canPlace, onChanged }: { canWrite: boolean; canPlace: boolean; onChanged: () => void }) {
-  const [layout, setLayout] = useState<OrgLayout | null>(null);
-  const [staff, setStaff] = useState<{ id: string; full_name: string }[]>([]);
+export type OrgEditorInitial = { layout: OrgLayout | null; staff: { id: string; full_name: string }[] | null; dups: DuplicatePair[] | null };
+
+/** `initial` (optional) is what the page already fetched, so the editor shows at once instead of appearing after its own requests. */
+export default function OrgEditor({ canWrite, canPlace, onChanged, initial }: { canWrite: boolean; canPlace: boolean; onChanged: () => void; initial?: OrgEditorInitial }) {
+  const [layout, setLayout] = useState<OrgLayout | null>(initial?.layout ?? null);
+  const [staff, setStaff] = useState<{ id: string; full_name: string }[]>(initial?.staff ?? []);
   const [plan, setPlan] = useState<PlacementPreview | null>(null);
   const [skip, setSkip] = useState<Set<string>>(new Set());
   const [newRegion, setNewRegion] = useState("");
@@ -33,7 +36,7 @@ export default function OrgEditor({ canWrite, canPlace, onChanged }: { canWrite:
   const [busy, setBusy] = useState(false);
   const [closing, setClosing] = useState<LayoutUnit | null>(null);
   const [moveTo, setMoveTo] = useState("");
-  const [dups, setDups] = useState<DuplicatePair[]>([]);
+  const [dups, setDups] = useState<DuplicatePair[]>(initial?.dups ?? []);
   const [dupOff, setDupOff] = useState<Set<string>>(new Set());
   const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
 
@@ -42,7 +45,11 @@ export default function OrgEditor({ canWrite, canPlace, onChanged }: { canWrite:
     if (canWrite) getUnitDuplicates().then((r) => { setDups(r.pairs); setDupOff(new Set()); }).catch(() => undefined);
     getStaff().then((r) => setStaff(r.items.map((s) => ({ id: s.id, full_name: s.full_name })))).catch(() => undefined);
   }, [canWrite]);
-  useEffect(load, [load]);
+  const preloaded = useRef(!!initial?.layout);
+  useEffect(() => {
+    if (preloaded.current) { preloaded.current = false; return; } // the page already supplied the first load
+    load();
+  }, [load]);
 
   const allRegions = useMemo(() => layout?.regions ?? [], [layout]);
   async function run(fn: () => Promise<unknown>, ok: string) {

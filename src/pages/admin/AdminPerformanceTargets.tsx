@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertCircle, Check } from "lucide-react";
 import { usePageMeta } from "../../lib/usePageMeta";
@@ -139,16 +139,23 @@ function Row({
   );
 }
 
-function Requests({ canSet, tick, onDone }: { canSet: boolean; tick: number; onDone: (n: Notice) => void }) {
-  const [items, setItems] = useState<TargetRequest[]>([]);
+/** `initial` (optional) is the pending list the page already fetched, so it shows with the rest of the page instead of popping in later. */
+function Requests({ canSet, tick, onDone, initial }: { canSet: boolean; tick: number; onDone: (n: Notice) => void; initial?: TargetRequest[] }) {
+  const [items, setItems] = useState<TargetRequest[]>(initial ?? []);
+  const have = useRef(initial ? "0|0" : "");
   const [note, setNote] = useState("");
   const [local, setLocal] = useState(0);
 
   useEffect(() => {
+    const key = `${tick}|${local}`;
+    if (have.current === key) return; // the page already supplied exactly this
     let cancelled = false;
     getTargetRequests("pending")
       .then((r) => {
-        if (!cancelled) setItems(r.items);
+        if (!cancelled) {
+          have.current = key;
+          setItems(r.items);
+        }
       })
       .catch(() => undefined);
     return () => {
@@ -215,6 +222,10 @@ export default function AdminPerformanceTargets() {
   const [kpiKey, setKpiKey] = useState("");
   const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const [kpiState, setKpiState] = useState<{ roleId: string; kpis: Kpi[] } | null>(null);
+  const [kpiSettled, setKpiSettled] = useState<string | null>(null); // the role whose KPI request has finished (even if it failed)
+  const [requestsInit, setRequestsInit] = useState<TargetRequest[] | null | undefined>(undefined); // undefined = not fetched yet
+  const [gridSettled, setGridSettled] = useState(false);
+  const [shown, setShown] = useState(false);
   const [rows, setRows] = useState<TargetGridRow[]>([]);
   const [tick, setTick] = useState(0);
   const [notice, setNotice] = useState<Notice>(null);
@@ -226,15 +237,19 @@ export default function AdminPerformanceTargets() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([getPerformanceRoles(), getUnits(), getLevels()])
-      .then(([r, u, l]) => {
+    Promise.all([getPerformanceRoles(), getUnits(), getLevels(), getTargetRequests("pending").then((x) => x.items).catch(() => null)])
+      .then(([r, u, l, reqs]) => {
         if (cancelled) return;
         setRoles(r.items);
         setUnits(u.items);
         setLevels(l.items);
+        setRequestsInit(reqs);
       })
       .catch((e) => {
-        if (!cancelled) setError(message(e, "Couldn't load."));
+        if (!cancelled) {
+          setError(message(e, "Couldn't load."));
+          setRequestsInit(null);
+        }
       });
     return () => {
       cancelled = true;
@@ -248,7 +263,10 @@ export default function AdminPerformanceTargets() {
       .then((v) => {
         if (!cancelled) setKpiState({ roleId: activeRole, kpis: v.kpis.filter((k) => k.source !== "appraisal_rating") });
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) setKpiSettled(activeRole);
+      });
     return () => {
       cancelled = true;
     };
@@ -267,6 +285,9 @@ export default function AdminPerformanceTargets() {
       })
       .catch((e) => {
         if (!cancelled) setError(message(e, "Couldn't load targets."));
+      })
+      .finally(() => {
+        if (!cancelled) setGridSettled(true);
       });
     return () => {
       cancelled = true;
@@ -277,6 +298,21 @@ export default function AdminPerformanceTargets() {
     setNotice(n);
     if (n?.ok) setTick((t) => t + 1);
   };
+
+  // Show the page once its first set of data (roles, branches, levels, pending requests, KPIs, the targets grid) has all arrived, so nothing pops in afterwards.
+  const firstDataReady = requestsInit !== undefined && (!activeRole || (kpiSettled === activeRole && (!gridKey || gridSettled)));
+  if (firstDataReady && !shown) setShown(true); // sticky: once shown, later refreshes never bring the loading screen back
+  if (!shown && !error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <Link to="/admin/performance" className="mb-2 inline-block text-xs font-semibold text-ink-500">← Staff Performance</Link>
+          <h1 className="font-display text-lg font-bold" style={heading}>Targets</h1>
+        </div>
+        <p role="status" className="text-sm text-ink-500">Loading targets…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -299,7 +335,7 @@ export default function AdminPerformanceTargets() {
         </p>
       )}
 
-      <Requests canSet={canSet} tick={tick} onDone={done} />
+      <Requests canSet={canSet} tick={tick} onDone={done} initial={requestsInit ?? undefined} />
 
       <section className={card}>
         <div className="mb-4 flex flex-wrap items-end gap-3">
@@ -329,7 +365,9 @@ export default function AdminPerformanceTargets() {
             <input type="month" className={`${input} mt-1 block`} value={month} onChange={(e) => e.target.value && setMonth(e.target.value)} />
           </label>
         </div>
-        {kpis.length === 0 ? (
+        {kpiSettled !== activeRole ? (
+          <p className="text-sm text-ink-500">Loading…</p>
+        ) : kpis.length === 0 ? (
           <p className="text-sm text-ink-500">This role has no KPI with a numeric target yet. Set its KPIs in Performance settings.</p>
         ) : rows.length === 0 ? (
           <p className="text-sm text-ink-500">No one to show for these filters.</p>
