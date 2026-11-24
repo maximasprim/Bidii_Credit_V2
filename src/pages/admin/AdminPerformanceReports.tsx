@@ -5,7 +5,6 @@ import {
   getCompare,
   getMyReport,
   getOrgReport,
-  getPersonReport,
   getRegionOptions,
   getRegionReport,
   getTeamReport,
@@ -14,7 +13,6 @@ import {
   type CompareReport,
   type OrgReport,
   type PerformanceUnit,
-  type PersonReport,
   type RegionOption,
   type RegionReport,
   type TeamReport,
@@ -22,6 +20,7 @@ import {
 } from "../../lib/performanceApi";
 import { usePageMeta } from "../../lib/usePageMeta";
 import PersonView from "../../components/admin/performance/PersonView";
+import PersonModal from "../../components/admin/performance/PersonModal";
 import PeriodSelector from "../../components/admin/performance/PeriodSelector";
 import {
   CategoryMix,
@@ -134,7 +133,6 @@ function GroupHeader({ summary, title, extra }: { summary: { achievement_pct: nu
 function TeamTab({ period }: { period: string }) {
   const { data, error, loading } = useReport<TeamReport>(() => getTeamReport(period), [period]);
   const [person, setPerson] = useState<string | null>(null);
-  const detail = useReport<PersonReport>(person ? () => getPersonReport(person, period) : null, [person, period]);
   return (
     <State loading={loading} error={error}>
       {data && (
@@ -146,13 +144,8 @@ function TeamTab({ period }: { period: string }) {
           </Card>
           <Card title="Everyone"><PeopleTable people={data.people} onOpen={setPerson} /></Card>
           <Card title="Category mix"><CategoryMix summary={data.summary} categories={data.scale.categories} /></Card>
-          <Card title="Month by month"><HeatmapGrid heatmap={data.heatmap} rowLabel="Name" /></Card>
-          {person && (
-            <Card title="Selected person">
-              <button type="button" onClick={() => setPerson(null)} className="mb-3 text-xs font-semibold underline">Close</button>
-              <State loading={detail.loading} error={detail.error}>{detail.data && <PersonView r={detail.data} />}</State>
-            </Card>
-          )}
+          <Card title="Month by month"><HeatmapGrid heatmap={data.heatmap} rowLabel="Name" onOpen={setPerson} /></Card>
+          {person && <PersonModal profileId={person} period={period} initial={data.people.find((x) => x.profile_id === person)} onClose={() => setPerson(null)} />}
         </div>
       )}
     </State>
@@ -165,11 +158,12 @@ function UnitTab({ period, units }: { period: string; units: PerformanceUnit[] }
     if (!unitId && units.length) setUnitId(units[0].id);
   }, [units, unitId]);
   const { data, error, loading } = useReport<UnitReport>(unitId ? () => getUnitReport(unitId, period) : null, [unitId, period]);
+  const [person, setPerson] = useState<string | null>(null);
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         <label htmlFor="unit-pick" className="text-xs font-semibold text-ink-600">Branch / unit</label>
-        <select id="unit-pick" className={field} value={unitId} onChange={(e) => setUnitId(e.target.value)}>
+        <select id="unit-pick" className={field} value={unitId} onChange={(e) => { setUnitId(e.target.value); setPerson(null); }}>
           {units.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
         </select>
         {unitId && <ExportButtons kind="unit" period={period} id={unitId} />}
@@ -180,8 +174,9 @@ function UnitTab({ period, units }: { period: string; units: PerformanceUnit[] }
           <div className="space-y-5">
             <GroupHeader summary={data.summary} title={data.unit.name} extra={<Stat label="Organisation" value={fmtPct(data.organisation.achievement_pct)} sub={`Average score ${data.organisation.average_score === null ? "–" : data.organisation.average_score.toFixed(0)}`} />} />
             {data.small_unit_note && <p role="note" className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">{data.small_unit_note}</p>}
-            <Card title="Month by month"><HeatmapGrid heatmap={data.heatmap} rowLabel="Name" /></Card>
-            <Card title="Staff"><PeopleTable people={data.people} /></Card>
+            <Card title="Month by month"><HeatmapGrid heatmap={data.heatmap} rowLabel="Name" onOpen={setPerson} /></Card>
+            <Card title="Staff"><PeopleTable people={data.people} onOpen={setPerson} /></Card>
+            {person && <PersonModal profileId={person} period={period} initial={data.people.find((x) => x.profile_id === person)} onClose={() => setPerson(null)} />}
             <Card title="Category mix"><CategoryMix summary={data.summary} categories={data.scale.categories} /></Card>
           </div>
         )}

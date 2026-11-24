@@ -1,8 +1,9 @@
 import { type PersonReport } from "../../../lib/performanceApi";
 import { CategoryLegend } from "../CategoryBadge";
 import { Card, KpiBreakdown, ScoreGauge, Stat, TrendChart, fmtNum, fmtPct } from "./ReportCharts";
+import OutlookChart from "./OutlookChart";
 
-export default function PersonView({ r }: { r: PersonReport }) {
+export default function PersonView({ r, showOutlook = true }: { r: PersonReport; showOutlook?: boolean }) {
   const p = r.person;
   return (
     <div className="space-y-5">
@@ -32,6 +33,11 @@ export default function PersonView({ r }: { r: PersonReport }) {
       <Card title="Monthly trend against target">
         <TrendChart trend={p.trend} />
       </Card>
+      {showOutlook && (
+        <Card title="Outlook" note="Where results are heading, and the path needed to reach a goal.">
+          <OutlookChart profileId={p.profile_id} />
+        </Card>
+      )}
       <Card title="How this score was calculated">
         <ul className="list-disc space-y-1 pl-5 text-sm text-ink-600">{r.explanation.map((l) => <li key={l}>{l}</li>)}</ul>
         <div className="mt-3"><CategoryLegend categories={r.scale.categories} /></div>

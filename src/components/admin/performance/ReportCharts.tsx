@@ -167,7 +167,7 @@ function heatColour(v: number | null) {
 }
 
 /** Rows x months. Every cell carries its number, so colour is never the only signal. */
-export function HeatmapGrid({ heatmap, rowLabel }: { heatmap: Heatmap; rowLabel: string }) {
+export function HeatmapGrid({ heatmap, rowLabel, onOpen }: { heatmap: Heatmap; rowLabel: string; onOpen?: (id: string) => void }) {
   if (!heatmap.rows.length || !heatmap.months.length) return <Empty />;
   return (
     <div className="overflow-x-auto">
@@ -185,10 +185,12 @@ export function HeatmapGrid({ heatmap, rowLabel }: { heatmap: Heatmap; rowLabel:
           </tr>
         </thead>
         <tbody>
-          {heatmap.rows.map((r) => (
-            <tr key={r.profile_id ?? r.unit_id ?? r.name} className="border-t border-mist-200">
-              <th scope="row" className="sticky left-0 bg-surface px-2 py-1 text-left font-medium text-ink-700">
-                {r.name}
+          {heatmap.rows.map((r) => {
+            const open = onOpen && r.profile_id ? () => onOpen(r.profile_id as string) : undefined;
+            return (
+            <tr key={r.profile_id ?? r.unit_id ?? r.name} onClick={open} className={`group border-t border-mist-200 ${open ? "cursor-pointer" : ""}`}>
+              <th scope="row" className={`sticky left-0 bg-surface px-2 py-1 text-left font-medium text-ink-700 ${open ? "group-hover:bg-mist-50" : ""}`}>
+                {open ? <button type="button" onClick={open} className="text-left underline">{r.name}</button> : r.name}
               </th>
               {r.cells.map((c, i) => {
                 const col = heatColour(c);
@@ -199,7 +201,8 @@ export function HeatmapGrid({ heatmap, rowLabel }: { heatmap: Heatmap; rowLabel:
                 );
               })}
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
       <p className="mt-1 text-[11px] text-ink-500">Achievement % each month. Blank means no verified figure or no target.</p>
@@ -293,7 +296,11 @@ export function PeopleTable({ people, onOpen }: { people: ReportPerson[]; onOpen
         </thead>
         <tbody>
           {rows.map((p) => (
-            <tr key={p.profile_id} className="border-t border-mist-200 align-top">
+            <tr
+              key={p.profile_id}
+              onClick={onOpen ? () => onOpen(p.profile_id) : undefined}
+              className={`border-t border-mist-200 align-top ${onOpen ? "cursor-pointer hover:bg-mist-50" : ""}`}
+            >
               <td className="px-2 py-2 font-medium text-ink-800">
                 {onOpen ? (
                   <button type="button" onClick={() => onOpen(p.profile_id)} className="text-left underline">

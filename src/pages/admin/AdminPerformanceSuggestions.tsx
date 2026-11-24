@@ -12,6 +12,7 @@ import {
 } from "../../lib/performanceApi";
 import { usePageMeta } from "../../lib/usePageMeta";
 import ProjectionCard from "../../components/admin/performance/ProjectionCard";
+import OutlookChart from "../../components/admin/performance/OutlookChart";
 
 const SEVERITY: Record<string, string> = { urgent: "bg-red-50 text-red-700 border-red-200", action: "bg-amber-50 text-amber-800 border-amber-200", info: "bg-mist-50 text-ink-700 border-mist-200" };
 
@@ -51,6 +52,7 @@ function Card({ r, canManage, reload }: { r: Recommendation; canManage: boolean;
   const [due, setDue] = useState("");
   const [advice, setAdvice] = useState<Advice | null>(r.advice);
   const [proj, setProj] = useState<PersonProjection | null>(null);
+  const [showPlan, setShowPlan] = useState(false);
   const done = r.status === "actioned" || r.status === "dismissed";
 
   const run = async (fn: () => Promise<unknown>) => {
@@ -86,6 +88,7 @@ function Card({ r, canManage, reload }: { r: Recommendation; canManage: boolean;
       {r.outcome && <p className="mt-1 text-xs text-ink-600">Follow-up: score {String(r.outcome.score_then)} → {String(r.outcome.score_now)} ({r.outcome.improved ? "improved" : "not improved"}).</p>}
       {advice && <AdviceBlock a={advice} />}
       {proj && <div className="mt-3"><ProjectionCard data={proj} /></div>}
+      {showPlan && r.entity_type === "staff" && <div className="mt-3 rounded-xl border border-mist-200 p-3"><OutlookChart profileId={r.entity_id} recommendationId={r.id} /></div>}
       {err && <p role="alert" className="mt-2 flex items-center gap-1 text-xs text-red-600"><AlertCircle size={13} />{err}</p>}
       {!done && (
         <div className="mt-3 flex flex-wrap items-end gap-2">
@@ -111,6 +114,9 @@ function Card({ r, canManage, reload }: { r: Recommendation; canManage: boolean;
           </button>
           {r.entity_type === "staff" && !proj && (
             <button disabled={busy} onClick={() => run(async () => setProj(await getPersonProjection(r.entity_id)))} className="text-ink-700 underline">Show projection</button>
+          )}
+          {r.entity_type === "staff" && (
+            <button type="button" aria-expanded={showPlan} onClick={() => setShowPlan((v) => !v)} className="text-ink-700 underline">{showPlan ? "Hide plan tracking" : "Track as a plan"}</button>
           )}
         </div>
       )}
