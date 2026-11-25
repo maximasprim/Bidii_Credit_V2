@@ -116,7 +116,7 @@ export default function AdminLayout() {
   return (
     <div className="flex h-screen flex-col overflow-hidden" style={{ backgroundColor: "var(--color-mist-50)" }}>
       <header
-        className="flex shrink-0 items-center justify-between px-1 py-2 lg:px-8"
+        className="flex shrink-0 items-center justify-between px-1 py-1 lg:px-3"
         style={{ backgroundColor: "var(--color-navy-950)" }}
       >
         <div className="flex items-center gap-3">
@@ -158,7 +158,7 @@ export default function AdminLayout() {
                   <img
                     src={logo}
                     alt="Bidii Credit"
-                    className="relative z-10 h-14 w-auto object-contain"
+                    className="relative z-10 h-12 w-auto object-contain"
                   />
                 </div>
 
