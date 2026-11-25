@@ -2,16 +2,17 @@ import { useEffect, useState } from "react";
 import { acknowledgeNotice, getNotice, type NoticeState } from "../../../lib/performanceApi";
 
 /** Shown until the person acknowledges the current data-use notice. Never blocks the page. */
-export default function NoticeBanner() {
-  const [n, setN] = useState<NoticeState | null>(null);
+export default function NoticeBanner({ initial }: { initial?: NoticeState | null } = {}) {
+  const [n, setN] = useState<NoticeState | null>(initial ?? null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
+    if (initial !== undefined) return; // the page already loaded it
     let cancelled = false;
     getNotice().then((d) => !cancelled && setN(d)).catch(() => undefined);
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initial]);
   if (!n || n.acknowledged) return null;
   return (
     <section aria-labelledby="notice-h" className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm">

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   cascadeApply, cascadeKpis, cascadeProposal, cascadeSet, cascadeTree, 
   type CascadeGap, type CascadeLevel, type CascadeProposal, type CascadeTree,
@@ -17,30 +17,73 @@ function Gap({ g }: { g: CascadeGap }) {
   return <span className={`text-xs font-semibold ${TONE[g.state]}`}>{STATE[g.state]}{g.gap != null && g.state !== "balanced" ? `: ${n(Math.abs(g.gap))}` : ""}</span>;
 }
 
+type Boot = { kpis: { key: string; label: string }[]; kpi: string; month: string; tree: CascadeTree | null; error: string | null };
+
+/** Fetches the measures and the first tree together and shows the page only when both have arrived. */
 export default function AdminPerformanceCascade() {
   usePageMeta("Goal cascading");
+  const [boot, setBoot] = useState<Boot | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const month = new Date().toISOString().slice(0, 8) + "01";
+    (async () => {
+      let result: Boot;
+      try {
+        const k = await cascadeKpis();
+        const first = k.items[0]?.key ?? "";
+        let tree: CascadeTree | null = null;
+        let error: string | null = null;
+        if (first) {
+          try {
+            tree = await cascadeTree(first, month);
+          } catch (e) {
+            error = msg(e);
+          }
+        }
+        result = { kpis: k.items, kpi: first, month, tree, error };
+      } catch (e) {
+        result = { kpis: [], kpi: "", month, tree: null, error: msg(e) };
+      }
+      if (!cancelled) setBoot(result);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  if (!boot) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="font-display text-lg font-bold" style={{ color: "var(--color-ink-900)" }}>Goal cascading</h1>
+        </div>
+        <p role="status" className="text-sm text-ink-500">Loading…</p>
+      </div>
+    );
+  }
+  return <CascadePage boot={boot} />;
+}
+
+function CascadePage({ boot }: { boot: Boot }) {
   const canEdit = ["admin", "hr"].includes(getCurrentAdminRole() ?? "");
-  const [kpis, setKpis] = useState<{ key: string; label: string }[]>([]);
-  const [kpi, setKpi] = useState("");
-  const [month, setMonth] = useState(new Date().toISOString().slice(0, 8) + "01");
-  const [tree, setTree] = useState<CascadeTree | null>(null);
-  const [err, setErr] = useState<string | null>(null);
+  const [kpis] = useState<{ key: string; label: string }[]>(boot.kpis);
+  const [kpi, setKpi] = useState(boot.kpi);
+  const [month, setMonth] = useState(boot.month);
+  const [tree, setTree] = useState<CascadeTree | null>(boot.tree);
+  const [err, setErr] = useState<string | null>(boot.error);
+  const have = useRef(`${boot.kpi}|${boot.month}`); // the tree for this measure and month is already held
   const [note, setNote] = useState<string | null>(null);
   const [prop, setProp] = useState<CascadeProposal | null>(null);
   const [edit, setEdit] = useState<{ level: CascadeLevel; id: string; label: string } | null>(null);
   const [value, setValue] = useState("");
   const [reason, setReason] = useState("");
-  useEffect(() => {
-    cascadeKpis().then((d) => {
-      setKpis(d.items);
-      if (d.items[0]) setKpi(d.items[0].key);
-    }).catch((e) => setErr(msg(e)));
-  }, []);
   const load = useCallback(() => {
     if (!kpi) return;
     cascadeTree(kpi, month).then((t) => { setTree(t); setErr(null); }).catch((e) => { setTree(null); setErr(msg(e)); });
   }, [kpi, month]);
-  useEffect(load, [load]);
+  useEffect(() => {
+    if (have.current === `${kpi}|${month}`) { have.current = ""; return; } // the page already supplied this one
+    load();
+  }, [load, kpi, month]);
   const run = async (fn: () => Promise<string>) => {
     setErr(null);
     setNote(null);

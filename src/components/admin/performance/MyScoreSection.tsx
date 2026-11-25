@@ -1,16 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getMyReport, type PersonReport } from "../../../lib/performanceApi";
 import PeriodSelector from "./PeriodSelector";
 import PersonView from "./PersonView";
 
 /** The score, KPI breakdown and trend on My Performance, with its own period control. */
-export default function MyScoreSection() {
+export default function MyScoreSection({ initial }: { initial?: PersonReport | null } = {}) {
   const [period, setPeriod] = useState("ytd");
-  const [data, setData] = useState<PersonReport | null>(null);
+  const [data, setData] = useState<PersonReport | null>(initial ?? null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initial);
+  const seededFor = useRef<string | null>(initial ? "ytd" : null);
 
   useEffect(() => {
+    if (seededFor.current === period) return; // the page already loaded this period
+    seededFor.current = null;
     let cancelled = false;
     setLoading(true);
     setError(null);

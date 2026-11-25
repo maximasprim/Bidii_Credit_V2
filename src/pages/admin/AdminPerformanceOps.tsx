@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
-  getAnomalies, getCalibration, getDataQuality, getMyReminders, getOpenActions, getStaff, getTimeline, getTrainingThemes, getUnitLeaderboard, updateTrackedAction,
+  getAnomalies, getCalibration, getDataQuality, getMyReminders, getOpenActions, getStaff, getTimeline, getTrainingThemes, getUnitLeaderboard, getWeekly, updateTrackedAction,
   type AnomalyRow, type Calibration, type QualityIssue, type ReminderItem, type StaffProfile, type TimelineEvent, type TrackedAction, type TrainingThemes, type UnitRank,
 } from "../../lib/performanceApi";
-import WeeklyViewSection from "../../components/admin/performance/WeeklyView";
+import WeeklyViewSection, { type WeeklyInitial } from "../../components/admin/performance/WeeklyView";
 import { usePageMeta } from "../../lib/usePageMeta";
 
 const btn = "rounded-full border border-mist-200 px-3 py-1.5 text-xs font-semibold text-ink-700 hover:bg-mist-50 disabled:opacity-50";
@@ -12,13 +12,17 @@ const input = "rounded-lg border border-mist-200 px-2 py-1.5 text-sm";
 const msg = (e: unknown) => (e instanceof Error ? e.message : "That didn't work.");
 
 /** Loads one section; a section the caller isn't allowed to see simply doesn't render. */
-function useSection<T>(fn: () => Promise<T>) {
-  const [data, setData] = useState<T | null>(null);
+function useSection<T>(fn: () => Promise<T>, initial?: { value: T | null }) {
+  const [data, setData] = useState<T | null>(initial ? initial.value : null);
+  const seeded = useRef(!!initial);
   const load = useCallback(() => {
     fn().then(setData).catch(() => setData(null));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  useEffect(load, [load]);
+  useEffect(() => {
+    if (seeded.current) { seeded.current = false; return; } // the page already supplied the first load
+    load();
+  }, [load]);
   return [data, load] as const;
 }
 
@@ -76,11 +80,13 @@ function Tracker({ items, reload }: { items: TrackedAction[]; reload: () => void
   );
 }
 
-function Timeline() {
-  const [people, setPeople] = useState<StaffProfile[]>([]);
+function Timeline({ initialPeople }: { initialPeople?: StaffProfile[] }) {
+  const [people, setPeople] = useState<StaffProfile[]>(initialPeople ?? []);
+  const seeded = useRef(initialPeople !== undefined);
   const [id, setId] = useState("");
   const [ev, setEv] = useState<TimelineEvent[]>([]);
   useEffect(() => {
+    if (seeded.current) { seeded.current = false; return; }
     getStaff().then((d) => setPeople(d.items)).catch(() => undefined);
   }, []);
   useEffect(() => {
@@ -164,25 +170,66 @@ function Training({ t }: { t: TrainingThemes }) {
   );
 }
 
+type Boot = {
+  rem: Awaited<ReturnType<typeof getMyReminders>> | null;
+  trk: Awaited<ReturnType<typeof getOpenActions>> | null;
+  lb: Awaited<ReturnType<typeof getUnitLeaderboard>> | null;
+  cal: Calibration | null;
+  dq: Awaited<ReturnType<typeof getDataQuality>> | null;
+  an: Awaited<ReturnType<typeof getAnomalies>> | null;
+  tr: TrainingThemes | null;
+  weekly: WeeklyInitial;
+  people: StaffProfile[];
+};
+const val = <T,>(r: PromiseSettledResult<T>): T | null => (r.status === "fulfilled" ? r.value : null);
+
+/** Fetches every section together and shows the page only when all of them have arrived (a section you may not see simply stays hidden). */
 export default function AdminPerformanceOps() {
   usePageMeta("Performance operations");
-  const [rem] = useSection(getMyReminders);
-  const [trk, reloadTrk] = useSection(getOpenActions);
-  const [lb] = useSection(getUnitLeaderboard);
-  const [cal] = useSection(getCalibration);
-  const [dq] = useSection(getDataQuality);
-  const [an] = useSection(getAnomalies);
-  const [tr] = useSection(getTrainingThemes);
+  const [boot, setBoot] = useState<Boot | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    Promise.allSettled([getMyReminders(), getOpenActions(), getUnitLeaderboard(), getCalibration(), getDataQuality(), getAnomalies(), getTrainingThemes(), getWeekly(), getStaff()]).then(
+      ([rem, trk, lb, cal, dq, an, tr, weekly, staff]) => {
+        if (cancelled) return;
+        setBoot({ rem: val(rem), trk: val(trk), lb: val(lb), cal: val(cal), dq: val(dq), an: val(an), tr: val(tr), weekly: { value: val(weekly) }, people: val(staff)?.items ?? [] });
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  if (!boot) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="font-display text-lg font-bold" style={{ color: "var(--color-ink-900)" }}>Operations</h1>
+        </div>
+        <p role="status" className="text-sm text-ink-500">Loading…</p>
+      </div>
+    );
+  }
+  return <OpsPage boot={boot} />;
+}
+
+function OpsPage({ boot }: { boot: Boot }) {
+  const [rem] = useSection(getMyReminders, { value: boot.rem });
+  const [trk, reloadTrk] = useSection(getOpenActions, { value: boot.trk });
+  const [lb] = useSection(getUnitLeaderboard, { value: boot.lb });
+  const [cal] = useSection(getCalibration, { value: boot.cal });
+  const [dq] = useSection(getDataQuality, { value: boot.dq });
+  const [an] = useSection(getAnomalies, { value: boot.an });
+  const [tr] = useSection(getTrainingThemes, { value: boot.tr });
   return (
     <div className="space-y-8">
       <div>
         <h1 className="font-display text-lg font-bold" style={{ color: "var(--color-ink-900)" }}>Operations</h1>
         <p className="text-sm text-ink-500">What is due, open follow-ups and the checks that keep the numbers trustworthy. You see only what your role allows.</p>
       </div>
-      <WeeklyViewSection />
+      <WeeklyViewSection initial={boot.weekly} />
       {rem && <Reminders items={rem.items} />}
       {trk && <Tracker items={trk.items} reload={reloadTrk} />}
-      <Timeline />
+      <Timeline initialPeople={boot.people} />
       {lb && <Leaderboard rows={lb.items} />}
       {cal && <CalibrationView c={cal} />}
       {(dq || an) && <Quality issues={dq?.issues ?? []} anomalies={an?.items ?? []} />}

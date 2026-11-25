@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
   compareImportVersions, getRestorePlan, labelImportVersion, listImportVersions, restoreImportVersion, unpostImportVersion,
@@ -10,13 +10,18 @@ const msg = (e: unknown) => (e instanceof Error ? e.message : "That didn't work.
 const when = (v: string | null) => (v ? new Date(v).toLocaleString("en-KE") : "");
 const num = (v: number | null) => (v == null ? "none" : v.toLocaleString("en-KE"));
 
-export default function ImportVersions({ onChanged }: { onChanged?: () => void }) {
-  const [rows, setRows] = useState<ImportVersionRow[]>([]);
+/** `initial` (optional) is the list the page already fetched, so it shows with the rest of the page. */
+export default function ImportVersions({ onChanged, initial }: { onChanged?: () => void; initial?: ImportVersionRow[] }) {
+  const [rows, setRows] = useState<ImportVersionRow[]>(initial ?? []);
+  const seeded = useRef(initial !== undefined);
   const [busy, setBusy] = useState<string | null>(null);
   const [cmp, setCmp] = useState<VersionCompare | null>(null);
   const [picked, setPicked] = useState<string[]>([]);
   const load = useCallback(() => { listImportVersions().then((r) => setRows(r.items)).catch((e) => toast.error(msg(e))); }, []);
-  useEffect(load, [load]);
+  useEffect(() => {
+    if (seeded.current) { seeded.current = false; return; } // the page already supplied the first load
+    load();
+  }, [load]);
 
   const done = (ok: string) => { toast.success(ok); load(); onChanged?.(); };
   const ask = (q: string) => (window.prompt(q) ?? "").trim();

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   f360AddSubject, f360Answer, f360Cycle, f360CreateCycle, f360Cycles, f360Decline, f360MyRequests, f360MyResults, f360Request, f360TeamResults, f360SetStatus, getStaff,
   type F360Cycle, type F360Form, type F360Progress, type F360Request, type F360Results, type StaffProfile,
@@ -63,11 +63,13 @@ function RatingForm({ id, onDone }: { id: string; onDone: () => void }) {
   );
 }
 
-function Requests() {
-  const [items, setItems] = useState<F360Request[]>([]);
+function Requests({ initial }: { initial: F360Request[] | null }) {
+  const seeded = useRef(initial !== null);
+  const [items, setItems] = useState<F360Request[]>(initial ?? []);
   const [open, setOpen] = useState<string | null>(null);
   const load = useCallback(() => f360MyRequests().then((d) => setItems(d.items)).catch(() => undefined), []);
   useEffect(() => {
+    if (seeded.current) { seeded.current = false; return; } // the page already supplied the first list
     load();
   }, [load]);
   if (items.length === 0) return null;
@@ -129,9 +131,11 @@ export function ResultsView({ r }: { r: F360Results }) {
   );
 }
 
-function MyResults() {
-  const [items, setItems] = useState<F360Results[]>([]);
+function MyResults({ initial }: { initial: F360Results[] | null }) {
+  const seeded = useRef(initial !== null);
+  const [items, setItems] = useState<F360Results[]>(initial ?? []);
   useEffect(() => {
+    if (seeded.current) { seeded.current = false; return; }
     f360MyResults().then((d) => setItems(d.items)).catch(() => undefined);
   }, []);
   if (items.length === 0) return null;
@@ -143,9 +147,11 @@ function MyResults() {
   );
 }
 
-function TeamResults() {
-  const [items, setItems] = useState<F360Results[]>([]);
+function TeamResults({ initial }: { initial: F360Results[] | null }) {
+  const seeded = useRef(initial !== null);
+  const [items, setItems] = useState<F360Results[]>(initial ?? []);
   useEffect(() => {
+    if (seeded.current) { seeded.current = false; return; }
     f360TeamResults().then((d) => setItems(d.items)).catch(() => undefined);
   }, []);
   if (items.length === 0) return null;
@@ -157,18 +163,20 @@ function TeamResults() {
   );
 }
 
-function Manage() {
-  const [cycles, setCycles] = useState<F360Cycle[] | null>(null);
+function Manage({ initialCycles, initialPeople }: { initialCycles: F360Cycle[] | null; initialPeople: StaffProfile[] | null }) {
+  const seeded = useRef(initialCycles !== null);
+  const [cycles, setCycles] = useState<F360Cycle[] | null>(initialCycles);
   const [name, setName] = useState("");
   const [sel, setSel] = useState<string | null>(null);
   const [detail, setDetail] = useState<(F360Cycle & { progress: F360Progress[] }) | null>(null);
-  const [people, setPeople] = useState<StaffProfile[]>([]);
+  const [people, setPeople] = useState<StaffProfile[]>(initialPeople ?? []);
   const [who, setWho] = useState("");
   const [results, setResults] = useState<Record<string, F360Results>>({});
   const [err, setErr] = useState<string | null>(null);
   const loadAll = useCallback(() => f360Cycles().then((d) => setCycles(d.items)).catch(() => setCycles(null)), []);
   const loadOne = useCallback((id: string) => f360Cycle(id).then(setDetail).catch((e) => setErr(msg(e))), []);
   useEffect(() => {
+    if (seeded.current) { seeded.current = false; return; } // the page already supplied the rounds and the people
     loadAll();
     getStaff().then((d) => setPeople(d.items)).catch(() => undefined);
   }, [loadAll]);
@@ -235,18 +243,49 @@ async function f360ResultsFor(id: string, set: (fn: (p: Record<string, F360Resul
   set((p) => ({ ...p, [id]: r }));
 }
 
+type Boot = {
+  requests: F360Request[] | null;
+  mine: F360Results[] | null;
+  team: F360Results[] | null;
+  cycles: F360Cycle[] | null;
+  people: StaffProfile[] | null;
+};
+const val = <T,>(r: PromiseSettledResult<T>): T | null => (r.status === "fulfilled" ? r.value : null);
+
+/** Fetches every section together and shows the page only when all of them have arrived (a section you may not see simply stays hidden). */
 export default function AdminPerformanceFeedback() {
   usePageMeta("360 feedback");
+  const [boot, setBoot] = useState<Boot | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    Promise.allSettled([f360MyRequests(), f360MyResults(), f360TeamResults(), f360Cycles(), getStaff()]).then(([a, b, c, d, e]) => {
+      if (cancelled) return;
+      setBoot({ requests: val(a)?.items ?? null, mine: val(b)?.items ?? null, team: val(c)?.items ?? null, cycles: val(d)?.items ?? null, people: val(e)?.items ?? null });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  if (!boot) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="font-display text-lg font-bold" style={{ color: "var(--color-ink-900)" }}>360° feedback</h1>
+        </div>
+        <p role="status" className="text-sm text-ink-500">Loading…</p>
+      </div>
+    );
+  }
   return (
     <div className="space-y-8">
       <div>
         <h1 className="font-display text-lg font-bold" style={{ color: "var(--color-ink-900)" }}>360° feedback</h1>
         <p className="text-sm text-ink-500">Confidential development feedback for managers. Your answers are anonymous within a group of at least three.</p>
       </div>
-      <Requests />
-      <MyResults />
-      <TeamResults />
-      <Manage />
+      <Requests initial={boot.requests} />
+      <MyResults initial={boot.mine} />
+      <TeamResults initial={boot.team} />
+      <Manage initialCycles={boot.cycles} initialPeople={boot.people} />
     </div>
   );
 }

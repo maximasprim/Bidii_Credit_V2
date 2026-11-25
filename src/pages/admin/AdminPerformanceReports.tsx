@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AlertCircle, Download } from "lucide-react";
 import {
   downloadReport,
@@ -12,6 +12,7 @@ import {
   getUnits,
   type CompareReport,
   type OrgReport,
+  type PersonReport,
   type PerformanceUnit,
   type RegionOption,
   type RegionReport,
@@ -19,8 +20,10 @@ import {
   type UnitReport,
 } from "../../lib/performanceApi";
 import { usePageMeta } from "../../lib/usePageMeta";
+import { readReport, reportKey, writeReport } from "../../lib/reportCache";
 import PersonView from "../../components/admin/performance/PersonView";
 import PersonModal from "../../components/admin/performance/PersonModal";
+import LeaversCard, { leaversOf } from "../../components/admin/performance/LeaversCard";
 import PeriodSelector from "../../components/admin/performance/PeriodSelector";
 import {
   CategoryMix,
@@ -46,22 +49,39 @@ const TABS: { key: Tab; label: string }[] = [
 const field = "rounded-lg border border-mist-200 bg-surface px-2.5 py-1.5 text-sm text-ink-700";
 
 /** Loads one report whenever its inputs change and shows a loading, error or the result state. */
-function useReport<T>(load: (() => Promise<T>) | null, deps: unknown[]) {
-  const [data, setData] = useState<T | null>(null);
-  const [error, setError] = useState<string | null>(null);
+function useReport<T>(load: (() => Promise<T>) | null, deps: unknown[], seed?: { data: T | null; error: string | null }) {
+  const [data, setData] = useState<T | null>(seed?.data ?? null);
+  const [error, setError] = useState<string | null>(seed?.error ?? null);
   const [loading, setLoading] = useState(false);
+  const seeded = useRef(!!seed);
   useEffect(() => {
+    if (seeded.current) {
+      seeded.current = false; // the page already fetched this report: keep it in the "show what you had" cache too, then wait for the next change
+      if (load && seed?.data) writeReport(reportKey(load, deps), seed.data);
+      return;
+    }
     if (!load) {
       setData(null);
       return;
     }
     let cancelled = false;
-    setLoading(true);
+    const key = reportKey(load, deps);
+    const seen = readReport<T>(key); // what we already had for exactly this report: shown at once, then refreshed below
+    if (seen !== null) {
+      setData(seen);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     setError(null);
     load()
-      .then((d) => !cancelled && setData(d))
-      .catch((e) => {
+      .then((d) => {
         if (cancelled) return;
+        writeReport(key, d);
+        setData(d);
+      })
+      .catch((e) => {
+        if (cancelled || seen !== null) return; // a failed refresh keeps showing what we had
         setData(null);
         setError(e instanceof Error ? e.message : "Couldn't load this report.");
       })
@@ -111,17 +131,17 @@ function ExportButtons({ kind, period, id }: { kind: "person" | "team" | "unit" 
   );
 }
 
-function MeTab({ period }: { period: string }) {
-  const { data, error, loading } = useReport(() => getMyReport(period), [period]);
+function MeTab({ period, seed }: { period: string; seed?: { data: PersonReport | null; error: string | null } }) {
+  const { data, error, loading } = useReport(() => getMyReport(period), [period], seed);
   return <State loading={loading} error={error}>{data && <PersonView r={data} />}</State>;
 }
 
-function GroupHeader({ summary, title, extra }: { summary: { achievement_pct: number | null; average_score: number | null; people: number; actual_total: number; target_total: number }; title: string; extra?: ReactNode }) {
+function GroupHeader({ summary, title, extra }: { summary: { achievement_pct: number | null; average_score: number | null; people: number; actual_total: number; target_total: number; leavers_included?: number }; title: string; extra?: ReactNode }) {
   return (
     <div className="space-y-3">
       <h2 className="font-display text-base font-bold" style={{ color: "var(--color-ink-900)" }}>{title}</h2>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Achievement" value={fmtPct(summary.achievement_pct)} sub={`KES ${fmtNum(summary.actual_total)} of ${fmtNum(summary.target_total)}`} />
+        <Stat label="Achievement" value={fmtPct(summary.achievement_pct)} sub={`KES ${fmtNum(summary.actual_total)} of ${fmtNum(summary.target_total)}${summary.leavers_included ? ` · includes ${summary.leavers_included} who ${summary.leavers_included === 1 ? "has" : "have"} left` : ""}`} />
         <Stat label="Average score" value={summary.average_score === null ? "–" : summary.average_score.toFixed(0)} />
         <Stat label="People" value={summary.people} />
         {extra}
@@ -143,6 +163,7 @@ function TeamTab({ period }: { period: string }) {
             {data.needs_attention.length ? <PeopleTable people={data.needs_attention} onOpen={setPerson} /> : <Empty>Nobody is flagged for this period.</Empty>}
           </Card>
           <Card title="Everyone"><PeopleTable people={data.people} onOpen={setPerson} /></Card>
+          <LeaversCard leavers={leaversOf(data.summary)} onOpen={setPerson} />
           <Card title="Category mix"><CategoryMix summary={data.summary} categories={data.scale.categories} /></Card>
           <Card title="Month by month"><HeatmapGrid heatmap={data.heatmap} rowLabel="Name" onOpen={setPerson} /></Card>
           {person && <PersonModal profileId={person} period={period} initial={data.people.find((x) => x.profile_id === person)} onClose={() => setPerson(null)} />}
@@ -176,6 +197,7 @@ function UnitTab({ period, units }: { period: string; units: PerformanceUnit[] }
             {data.small_unit_note && <p role="note" className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">{data.small_unit_note}</p>}
             <Card title="Month by month"><HeatmapGrid heatmap={data.heatmap} rowLabel="Name" onOpen={setPerson} /></Card>
             <Card title="Staff"><PeopleTable people={data.people} onOpen={setPerson} /></Card>
+            <LeaversCard leavers={leaversOf(data.summary)} onOpen={setPerson} />
             {person && <PersonModal profileId={person} period={period} initial={data.people.find((x) => x.profile_id === person)} onClose={() => setPerson(null)} />}
             <Card title="Category mix"><CategoryMix summary={data.summary} categories={data.scale.categories} /></Card>
           </div>
@@ -230,6 +252,7 @@ function RegionTab({ period, regions }: { period: string; regions: RegionOption[
           <div className="space-y-5">
             <GroupHeader summary={data.summary} title={data.region.name} />
             <Card title="Branches compared" note="Target versus actual for each branch."><BranchTable rows={data.branches} /></Card>
+            <LeaversCard leavers={leaversOf(data.summary)} />
             <Card title="Category mix"><CategoryMix summary={data.summary} categories={data.scale.categories} /></Card>
           </div>
         )}
@@ -249,6 +272,7 @@ function OrgTab({ period }: { period: string }) {
           <Card title="Category distribution by month" note="Replaces the JAN–OCT and H1 summary sheets."><DistributionChart rows={data.by_month} categories={data.scale.categories} /></Card>
           <Card title="Branch by month"><HeatmapGrid heatmap={data.heatmap} rowLabel="Branch" /></Card>
           <Card title="Target vs actual by branch"><BranchTable rows={data.branches} /></Card>
+          <LeaversCard leavers={leaversOf(data.summary)} />
           <div className="grid gap-4 lg:grid-cols-2">
             <Card title="Top movers" note={`Compared with ${data.previous.label}.`}><Movers rows={data.top_movers} /></Card>
             <Card title="Bottom movers"><Movers rows={data.bottom_movers} /></Card>
@@ -316,17 +340,42 @@ function CompareTab({ units }: { units: PerformanceUnit[] }) {
   );
 }
 
+type Boot = { units: PerformanceUnit[]; regions: RegionOption[]; me: { data: PersonReport | null; error: string | null } };
+
+/** Fetches the branch and region lists and the default report (My score, year to date) together, and shows the page only when all have arrived. */
 export default function AdminPerformanceReports() {
   usePageMeta("Performance reports");
+  const [boot, setBoot] = useState<Boot | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    Promise.allSettled([getUnits(), getRegionOptions(), getMyReport("ytd")]).then(([u, r, m]) => {
+      if (cancelled) return;
+      setBoot({
+        units: u.status === "fulfilled" ? u.value.items : [],
+        regions: r.status === "fulfilled" ? r.value.items : [],
+        me: m.status === "fulfilled" ? { data: m.value, error: null } : { data: null, error: m.reason instanceof Error ? m.reason.message : "Couldn't load this report." },
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  if (!boot) {
+    return (
+      <div className="space-y-5">
+        <h1 className="font-display text-lg font-bold" style={{ color: "var(--color-ink-900)" }}>Performance reports</h1>
+        <p role="status" className="text-sm text-ink-500">Loading…</p>
+      </div>
+    );
+  }
+  return <ReportsPage boot={boot} />;
+}
+
+function ReportsPage({ boot }: { boot: Boot }) {
   const [tab, setTab] = useState<Tab>("me");
   const [period, setPeriod] = useState("ytd");
-  const [units, setUnits] = useState<PerformanceUnit[]>([]);
-  const [regions, setRegions] = useState<RegionOption[]>([]);
-
-  useEffect(() => {
-    getUnits().then((r) => setUnits(r.items)).catch(() => setUnits([]));
-    getRegionOptions().then((r) => setRegions(r.items)).catch(() => setRegions([]));
-  }, []);
+  const units = boot.units;
+  const regions = boot.regions;
 
   return (
     <div className="space-y-5">
@@ -345,7 +394,7 @@ export default function AdminPerformanceReports() {
         ))}
       </div>
       <div role="tabpanel">
-        {tab === "me" && <MeTab period={period} />}
+        {tab === "me" && <MeTab period={period} seed={period === "ytd" ? boot.me : undefined} />}
         {tab === "team" && <TeamTab period={period} />}
         {tab === "unit" && <UnitTab period={period} units={units} />}
         {tab === "region" && <RegionTab period={period} regions={regions} />}

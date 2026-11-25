@@ -1,7 +1,22 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertCircle, Users, Building2, UserCog } from "lucide-react";
-import { getMyPerformance, type MyPerformance } from "../../lib/performanceApi";
+import {
+  getAccessLog,
+  getEntries,
+  getMyPerformance,
+  getMyProjection,
+  getMyReport,
+  getNotice,
+  getNotifyPrefs,
+  type AccessLogRow,
+  type EntryMonth,
+  type MyPerformance,
+  type NoticeState,
+  type NotifyPrefs,
+  type PersonProjection,
+  type PersonReport,
+} from "../../lib/performanceApi";
 import { usePageMeta } from "../../lib/usePageMeta";
 import { CategoryLegend } from "../../components/admin/CategoryBadge";
 import StatusBadge from "../../components/admin/StatusBadge";
@@ -12,16 +27,55 @@ import ReminderPrefs from "../../components/admin/performance/ReminderPrefs";
 import AccessLog from "../../components/admin/performance/AccessLog";
 import MyProjectionSection from "../../components/admin/performance/MyProjectionSection";
 
+type Boot = {
+  data: MyPerformance;
+  report: PersonReport | null;
+  projection: PersonProjection | null;
+  notice: NoticeState | null;
+  prefs: NotifyPrefs | null;
+  access: AccessLogRow[] | null;
+  entries: EntryMonth | null;
+};
+
+const thisMonth = () => new Date().toISOString().slice(0, 7);
+const ok = <T,>(r: PromiseSettledResult<T>): T | null => (r.status === "fulfilled" ? r.value : null);
+
+/** Loads everything the page shows first, then draws it in one go (parts that fail fall back to their old behaviour). */
 export default function AdminMyPerformance() {
   usePageMeta("My Performance");
-  const [data, setData] = useState<MyPerformance | null>(null);
+  const [boot, setBoot] = useState<Boot | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    getMyPerformance()
-      .then((d) => !cancelled && setData(d))
-      .catch((e) => !cancelled && setError(e instanceof Error ? e.message : "Couldn't load your performance profile."));
+    (async () => {
+      const [perf, report, projection, notice, prefs] = await Promise.allSettled([
+        getMyPerformance(),
+        getMyReport("ytd"),
+        getMyProjection(),
+        getNotice(),
+        getNotifyPrefs(),
+      ]);
+      if (cancelled) return;
+      if (perf.status === "rejected") {
+        setError(perf.reason instanceof Error ? perf.reason.message : "Couldn't load your performance profile.");
+        return;
+      }
+      const id = perf.value.profile?.id;
+      const [access, entries] = id
+        ? await Promise.allSettled([getAccessLog(id), getEntries(id, `${thisMonth()}-01`)])
+        : [null, null];
+      if (cancelled) return;
+      setBoot({
+        data: perf.value,
+        report: ok(report),
+        projection: ok(projection),
+        notice: ok(notice),
+        prefs: ok(prefs),
+        access: access && access.status === "fulfilled" ? access.value.items : null,
+        entries: entries ? ok(entries) : null,
+      });
+    })();
     return () => {
       cancelled = true;
     };
@@ -34,7 +88,12 @@ export default function AdminMyPerformance() {
         {error}
       </div>
     );
-  if (!data) return <p className="text-sm text-ink-500">Loading…</p>;
+  if (!boot) return <p className="text-sm text-ink-500">Loading…</p>;
+  return <MyPerformancePage boot={boot} />;
+}
+
+function MyPerformancePage({ boot }: { boot: Boot }) {
+  const data = boot.data;
 
   const p = data.profile;
 
@@ -83,7 +142,7 @@ export default function AdminMyPerformance() {
         </div>
       )}
 
-      {p && <EntryCard profileId={p.id} ym={new Date().toISOString().slice(0, 7)} title="This month's figures" />}
+      {p && <EntryCard profileId={p.id} ym={thisMonth()} title="This month's figures" initial={boot.entries} />}
 
       {p && (
         <div className="rounded-2xl border border-mist-200 bg-surface p-5">
@@ -103,11 +162,11 @@ export default function AdminMyPerformance() {
         <CategoryLegend categories={data.categories} />
       </div>
 
-      {p && <NoticeBanner />}
-      {p && <MyScoreSection />}
-      {p && <MyProjectionSection />}
-      {p && <AccessLog profileId={p.id} />}
-      <ReminderPrefs />
+      {p && <NoticeBanner initial={boot.notice} />}
+      {p && <MyScoreSection initial={boot.report} />}
+      {p && <MyProjectionSection initial={boot.projection} />}
+      {p && <AccessLog profileId={p.id} initial={boot.access} />}
+      <ReminderPrefs initial={boot.prefs} />
       {data.team_size !== 0 && (
         <p className="text-sm text-ink-500">
           Looking after a team or branch? <Link to="/admin/performance/reports" className="font-semibold text-ink-700 underline">Open the reports</Link>

@@ -3,10 +3,11 @@ import { getMyProjection, type PersonProjection } from "../../../lib/performance
 import ProjectionCard from "./ProjectionCard";
 
 /** Where my results are heading, from my own verified months. */
-export default function MyProjectionSection() {
-  const [data, setData] = useState<PersonProjection | null>(null);
+export default function MyProjectionSection({ initial }: { initial?: PersonProjection | null } = {}) {
+  const [data, setData] = useState<PersonProjection | null>(initial ?? null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
+    if (initial !== undefined) return; // the page already loaded it
     let cancelled = false;
     getMyProjection()
       .then((d) => !cancelled && setData(d))
@@ -14,7 +15,7 @@ export default function MyProjectionSection() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initial]);
   if (error || !data) return null; // no linked profile, or nothing to show: stay quiet
   return (
     <section aria-labelledby="my-proj-h" className="space-y-3">

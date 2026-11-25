@@ -1,12 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getAccessLog, type AccessLogRow } from "../../../lib/performanceApi";
 
 const LABEL: Record<string, string> = { "report.view": "Viewed the results report", appraisal_viewed: "Opened an appraisal", appraisal_downloaded: "Downloaded an appraisal", appraisal_file_downloaded: "Downloaded an uploaded form" };
 
 /** Who has looked at this person's report and appraisals. HR/admin and the person themselves only. */
-export default function AccessLog({ profileId, title = "Who has viewed my records" }: { profileId: string; title?: string }) {
-  const [rows, setRows] = useState<AccessLogRow[] | null>(null);
+export default function AccessLog({ profileId, title = "Who has viewed my records", initial }: { profileId: string; title?: string; initial?: AccessLogRow[] | null }) {
+  const [rows, setRows] = useState<AccessLogRow[] | null>(initial ?? null);
+  const seededFor = useRef<string | null>(initial ? profileId : null);
   useEffect(() => {
+    if (seededFor.current === profileId) return; // already loaded by the page
+    seededFor.current = null;
     let cancelled = false;
     getAccessLog(profileId).then((d) => !cancelled && setRows(d.items)).catch(() => !cancelled && setRows(null));
     return () => {

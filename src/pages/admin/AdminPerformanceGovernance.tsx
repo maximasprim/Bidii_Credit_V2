@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   anonymiseLeaver, getDeliveryReport, getLocks, getNoticeOutstanding, getRetentionCandidates, lockPeriod, reopenPeriod,
   type DeliveryReport, type PeriodLockRow, type RetentionCandidates,
@@ -13,14 +13,18 @@ function msg(e: unknown) {
   return e instanceof Error ? e.message : "That didn't work.";
 }
 
-function Locks() {
-  const [rows, setRows] = useState<PeriodLockRow[]>([]);
+type NoticeData = { version: string; items: { profile_id: string; name: string }[] };
+
+function Locks({ initial }: { initial: { rows: PeriodLockRow[]; error: string | null } }) {
+  const seeded = useRef(true);
+  const [rows, setRows] = useState<PeriodLockRow[]>(initial.rows);
   const [period, setPeriod] = useState("");
   const [reason, setReason] = useState("");
   const [note, setNote] = useState<string | null>(null);
-  const [err, setErr] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(initial.error);
   const load = useCallback(() => getLocks().then((d) => setRows(d.items)).catch((e) => setErr(msg(e))), []);
   useEffect(() => {
+    if (seeded.current) { seeded.current = false; return; } // the page already supplied the first load
     load();
   }, [load]);
   const run = async (fn: () => Promise<string>) => {
@@ -58,13 +62,15 @@ function Locks() {
   );
 }
 
-function Retention({ isAdmin }: { isAdmin: boolean }) {
-  const [data, setData] = useState<RetentionCandidates | null>(null);
+function Retention({ isAdmin, initial }: { isAdmin: boolean; initial: { data: RetentionCandidates | null; error: string | null } }) {
+  const seeded = useRef(true);
+  const [data, setData] = useState<RetentionCandidates | null>(initial.data);
   const [typed, setTyped] = useState<Record<string, string>>({});
-  const [err, setErr] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(initial.error);
   const [note, setNote] = useState<string | null>(null);
   const load = useCallback(() => getRetentionCandidates().then(setData).catch((e) => setErr(msg(e))), []);
   useEffect(() => {
+    if (seeded.current) { seeded.current = false; return; }
     load();
   }, [load]);
   return (
@@ -102,9 +108,11 @@ function Retention({ isAdmin }: { isAdmin: boolean }) {
   );
 }
 
-function Delivery() {
-  const [d, setD] = useState<DeliveryReport | null>(null);
+function Delivery({ initial }: { initial: DeliveryReport | null }) {
+  const [d, setD] = useState<DeliveryReport | null>(initial);
+  const seeded = useRef(true);
   useEffect(() => {
+    if (seeded.current) { seeded.current = false; return; }
     getDeliveryReport().then(setD).catch(() => undefined);
   }, []);
   if (!d) return null;
@@ -119,9 +127,11 @@ function Delivery() {
   );
 }
 
-function Notice() {
-  const [d, setD] = useState<{ version: string; items: { profile_id: string; name: string }[] } | null>(null);
+function Notice({ initial }: { initial: NoticeData | null }) {
+  const [d, setD] = useState<NoticeData | null>(initial);
+  const seeded = useRef(true);
   useEffect(() => {
+    if (seeded.current) { seeded.current = false; return; }
     getNoticeOutstanding().then(setD).catch(() => undefined);
   }, []);
   if (!d) return null;
@@ -135,19 +145,51 @@ function Notice() {
   );
 }
 
+type Boot = {
+  locks: { rows: PeriodLockRow[]; error: string | null };
+  retention: { data: RetentionCandidates | null; error: string | null };
+  delivery: DeliveryReport | null;
+  notice: NoticeData | null;
+};
+
+/** Fetches every section together and shows the page only when all of them have arrived. */
 export default function AdminPerformanceGovernance() {
   usePageMeta("Performance governance");
   const isAdmin = getCurrentAdminRole() === "admin";
+  const [boot, setBoot] = useState<Boot | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    Promise.allSettled([getLocks(), getRetentionCandidates(), getDeliveryReport(), getNoticeOutstanding()]).then(([l, r, d, n]) => {
+      if (cancelled) return;
+      setBoot({
+        locks: l.status === "fulfilled" ? { rows: l.value.items, error: null } : { rows: [], error: msg(l.reason) },
+        retention: r.status === "fulfilled" ? { data: r.value, error: null } : { data: null, error: msg(r.reason) },
+        delivery: d.status === "fulfilled" ? d.value : null,
+        notice: n.status === "fulfilled" ? n.value : null,
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  if (!boot) {
+    return (
+      <div className="space-y-8">
+        <h1 className="font-display text-lg font-bold" style={{ color: "var(--color-ink-900)" }}>Governance</h1>
+        <p role="status" className="text-sm text-ink-500">Loading…</p>
+      </div>
+    );
+  }
   return (
     <div className="space-y-8">
       <div>
         <h1 className="font-display text-lg font-bold" style={{ color: "var(--color-ink-900)" }}>Governance</h1>
         <p className="text-sm text-ink-500">Period locks, the staff data-use notice and the retention period. HR and administrators only.</p>
       </div>
-      <Locks />
-      <Notice />
-      <Delivery />
-      <Retention isAdmin={isAdmin} />
+      <Locks initial={boot.locks} />
+      <Notice initial={boot.notice} />
+      <Delivery initial={boot.delivery} />
+      <Retention isAdmin={isAdmin} initial={boot.retention} />
     </div>
   );
 }

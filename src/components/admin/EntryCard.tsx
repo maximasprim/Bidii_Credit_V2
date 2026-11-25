@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertCircle, Check } from "lucide-react";
 import { getCurrentAdminRole } from "../../lib/adminApi";
 import { downloadEvidence, getEntries, saveEntry, submitEntries, uploadEvidence, type EntryMonth, type EntryRow } from "../../lib/performanceApi";
@@ -17,16 +17,19 @@ const fmt = (n: number | null, unit: string) =>
   n === null ? "-" : `${n.toLocaleString("en-KE", { maximumFractionDigits: 2 })}${unit === "percent" ? "%" : ""}`;
 
 /** `ym` is "YYYY-MM". Entering figures for a month, with the target and (verified-only) achievement beside each. */
-export default function EntryCard({ profileId, ym, title }: { profileId: string; ym: string; title?: string }) {
-  const [data, setData] = useState<EntryMonth | null>(null);
+export default function EntryCard({ profileId, ym, title, initial }: { profileId: string; ym: string; title?: string; initial?: EntryMonth | null }) {
+  const [data, setData] = useState<EntryMonth | null>(initial ?? null);
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [tick, setTick] = useState(0);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const adminRole = getCurrentAdminRole();
   const canOverrideWindow = adminRole === "admin" || adminRole === "hr";
+  const seededKey = useRef<string | null>(initial ? `${profileId}|${ym}|0` : null);
 
   useEffect(() => {
+    if (seededKey.current === `${profileId}|${ym}|${tick}`) return; // the page already loaded this month
+    seededKey.current = null;
     let cancelled = false;
     getEntries(profileId, `${ym}-01`)
       .then((d) => {

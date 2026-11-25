@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { downloadPack, packGenerate, packList, packPreview, type BoardPackData, type BoardPackRow } from "../../lib/performanceApi";
 import { getCurrentAdminRole } from "../../lib/adminApi";
 import { usePageMeta } from "../../lib/usePageMeta";
@@ -7,18 +7,57 @@ const btn = "rounded-full border border-mist-200 px-3 py-1.5 text-xs font-semibo
 const pct = (v: number | null | undefined) => (v == null ? "n/a" : `${v.toFixed(1)}%`);
 const msg = (e: unknown) => (e instanceof Error ? e.message : "That didn't work.");
 
+type Boot = { rows: BoardPackRow[]; data: BoardPackData | null; error: string | null };
+
+/** Fetches the generated-packs list and the preview together and shows the page only when both have arrived. */
 export default function AdminPerformancePack() {
   usePageMeta("Board pack");
+  const [boot, setBoot] = useState<Boot | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    Promise.allSettled([packList(), packPreview(undefined)]).then(([l, d]) => {
+      if (cancelled) return;
+      setBoot({
+        rows: l.status === "fulfilled" ? l.value : [],
+        data: d.status === "fulfilled" ? d.value : null,
+        error: d.status === "rejected" ? msg(d.reason) : l.status === "rejected" ? msg(l.reason) : null,
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  if (!boot) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="font-display text-lg font-bold" style={{ color: "var(--color-ink-900)" }}>Monthly board pack</h1>
+        </div>
+        <p role="status" className="text-sm text-ink-500">Loading…</p>
+      </div>
+    );
+  }
+  return <PackPage boot={boot} />;
+}
+
+function PackPage({ boot }: { boot: Boot }) {
   const canGenerate = ["admin", "hr"].includes(getCurrentAdminRole() ?? "");
   const [month, setMonth] = useState("");
-  const [data, setData] = useState<BoardPackData | null>(null);
-  const [rows, setRows] = useState<BoardPackRow[]>([]);
-  const [err, setErr] = useState<string | null>(null);
+  const [data, setData] = useState<BoardPackData | null>(boot.data);
+  const [rows, setRows] = useState<BoardPackRow[]>(boot.rows);
+  const [err, setErr] = useState<string | null>(boot.error);
+  const haveMonth = useRef<string | null>(""); // the preview for "last complete month" is already held
+  const listSeeded = useRef(true);
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const loadList = useCallback(() => { packList().then(setRows).catch((e) => setErr(msg(e))); }, []);
-  useEffect(loadList, [loadList]);
   useEffect(() => {
+    if (listSeeded.current) { listSeeded.current = false; return; } // the page already supplied the first list
+    loadList();
+  }, [loadList]);
+  useEffect(() => {
+    if (haveMonth.current === month) return;
+    haveMonth.current = null;
     packPreview(month || undefined).then((d) => { setData(d); setErr(null); }).catch((e) => { setData(null); setErr(msg(e)); });
   }, [month]);
   const generate = async () => {

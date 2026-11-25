@@ -5,14 +5,15 @@ const input = "rounded-lg border border-mist-200 px-2 py-1.5 text-sm";
 const btn = "rounded-full border border-mist-200 px-3 py-1.5 text-xs font-semibold text-ink-700 hover:bg-mist-50 disabled:opacity-50";
 
 /** Where my reminders go besides the bell. Messages never contain names or performance details. */
-export default function ReminderPrefs() {
-  const [p, setP] = useState<NotifyPrefs | null>(null);
-  const [emailOn, setEmailOn] = useState(true);
-  const [smsOn, setSmsOn] = useState(false);
-  const [phone, setPhone] = useState("");
+export default function ReminderPrefs({ initial }: { initial?: NotifyPrefs | null } = {}) {
+  const [p, setP] = useState<NotifyPrefs | null>(initial ?? null);
+  const [emailOn, setEmailOn] = useState(initial ? initial.email_on : true);
+  const [smsOn, setSmsOn] = useState(initial ? initial.sms_on : false);
+  const [phone, setPhone] = useState(initial?.phone ?? "");
   const [note, setNote] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   useEffect(() => {
+    if (initial !== undefined) return; // the page already loaded it
     getNotifyPrefs()
       .then((d) => {
         setP(d);
@@ -21,7 +22,7 @@ export default function ReminderPrefs() {
         setPhone(d.phone ?? "");
       })
       .catch(() => undefined);
-  }, []);
+  }, [initial]);
   if (!p) return null;
   const run = async (fn: () => Promise<string>) => {
     setErr(null);

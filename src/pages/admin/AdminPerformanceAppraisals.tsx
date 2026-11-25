@@ -26,6 +26,8 @@ export default function AdminPerformanceAppraisals() {
   const [period, setPeriod] = useState(thisQuarter);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [listDone, setListDone] = useState(false);
+  const [staffDone, setStaffDone] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -38,6 +40,9 @@ export default function AdminPerformanceAppraisals() {
       })
       .catch((e) => {
         if (!cancelled) setError(e instanceof Error ? e.message : "Couldn't load appraisals.");
+      })
+      .finally(() => {
+        if (!cancelled) setListDone(true);
       });
     return () => {
       cancelled = true;
@@ -50,7 +55,10 @@ export default function AdminPerformanceAppraisals() {
       .then((s) => {
         if (!cancelled) setStaff(s.items);
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) setStaffDone(true);
+      });
     return () => {
       cancelled = true;
     };
@@ -67,6 +75,19 @@ export default function AdminPerformanceAppraisals() {
     } finally {
       setBusy(false);
     }
+  }
+
+  // Show the page once the appraisal list and the people list have both arrived (the list refreshing later never brings this back).
+  if (!(listDone && staffDone)) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <Link to="/admin/performance" className="mb-2 inline-block text-xs font-semibold text-ink-500">← Staff Performance</Link>
+          <h1 className="font-display text-lg font-bold" style={heading}>Appraisals</h1>
+        </div>
+        <p role="status" className="text-sm text-ink-500">Loading…</p>
+      </div>
+    );
   }
 
   return (

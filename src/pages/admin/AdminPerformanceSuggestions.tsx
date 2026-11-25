@@ -130,6 +130,7 @@ export default function AdminPerformanceSuggestions() {
   const [canGenerate, setCanGenerate] = useState(false);
   const [filter, setFilter] = useState<"open" | "all">("open");
   const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false); // first load finished: the page then shows everything at once
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -142,7 +143,10 @@ export default function AdminPerformanceSuggestions() {
         setError(null);
       })
       .catch((e) => setError(e instanceof Error ? e.message : "Couldn't load suggestions."))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setLoaded(true);
+      });
   }, [filter]);
   useEffect(load, [load]);
 
@@ -156,6 +160,15 @@ export default function AdminPerformanceSuggestions() {
       setError(e instanceof Error ? e.message : "Couldn't run the checks.");
     }
   };
+
+  if (!loaded) {
+    return (
+      <div className="space-y-4">
+        <h1 className="font-display text-lg font-bold" style={{ color: "var(--color-ink-900)" }}>Suggestions</h1>
+        <p role="status" className="text-sm text-ink-500">Loading…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

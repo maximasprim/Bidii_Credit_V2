@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertCircle, AlertTriangle, Check, Download, Info, Upload } from "lucide-react";
 import toast from "react-hot-toast";
@@ -13,6 +13,7 @@ import {
   getPerformanceRoles,
   getUnits,
   listImports,
+  listImportVersions,
   saveImportDecisions,
   undoImport,
   uploadImportWorkbook,
@@ -21,6 +22,7 @@ import {
   type ImportListItem,
   type ImportName,
   type ImportOptionsState,
+  type ImportVersionRow,
   type ImportPreview,
   type ImportRunResult,
   type PerformanceRole,
@@ -361,12 +363,47 @@ function PastRuns({ items, onChanged }: { items: ImportListItem[]; onChanged: ()
   );
 }
 
+type Boot = { past: ImportListItem[]; units: PerformanceUnit[]; roles: PerformanceRole[]; versions: ImportVersionRow[] | undefined };
+
+/** Fetches past imports, branches/teams, roles and saved versions together and shows the page only when all have arrived. */
 export default function AdminPerformanceImport() {
   usePageMeta("Import from Excel");
+  const [boot, setBoot] = useState<Boot | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    Promise.allSettled([listImports(), getUnits(), getPerformanceRoles(), listImportVersions()]).then(([p, u, r, v]) => {
+      if (cancelled) return;
+      setBoot({
+        past: p.status === "fulfilled" ? p.value.items : [],
+        units: u.status === "fulfilled" ? u.value.items : [],
+        roles: r.status === "fulfilled" ? r.value.items : [],
+        versions: v.status === "fulfilled" ? v.value.items : undefined,
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  if (!boot) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <Link to="/admin/performance" className="mb-2 inline-block text-xs font-semibold text-ink-500">← Staff Performance</Link>
+          <h1 className="font-display text-lg font-bold" style={heading}>Import from Excel</h1>
+        </div>
+        <p role="status" className="text-sm text-ink-500">Loading…</p>
+      </div>
+    );
+  }
+  return <ImportPage boot={boot} />;
+}
+
+function ImportPage({ boot }: { boot: Boot }) {
   const [preview, setPreview] = useState<ImportPreview | null>(null);
-  const [units, setUnits] = useState<PerformanceUnit[]>([]);
-  const [roles, setRoles] = useState<PerformanceRole[]>([]);
-  const [past, setPast] = useState<ImportListItem[]>([]);
+  const [units, setUnits] = useState<PerformanceUnit[]>(boot.units);
+  const [roles, setRoles] = useState<PerformanceRole[]>(boot.roles);
+  const [past, setPast] = useState<ImportListItem[]>(boot.past);
+  const seeded = useRef(true);
   const [year, setYear] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -376,7 +413,10 @@ export default function AdminPerformanceImport() {
     getUnits().then((r) => setUnits(r.items)).catch(() => undefined);
     getPerformanceRoles().then((r) => setRoles(r.items)).catch(() => undefined);
   }, []);
-  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => {
+    if (seeded.current) { seeded.current = false; return; } // the page already supplied the first load
+    refresh();
+  }, [refresh]);
 
   async function onFile(file: File | undefined) {
     if (!file) return;
@@ -429,7 +469,7 @@ export default function AdminPerformanceImport() {
       )}
       {preview && <Review preview={preview} units={units} roles={roles} onChange={setPreview} onDone={() => { refresh(); }} />}
       {preview && <button type="button" className={btn} onClick={() => { setPreview(null); refresh(); }}>Start over</button>}
-      <ImportVersions onChanged={refresh} />
+      <ImportVersions onChanged={refresh} initial={boot.versions} />
       <PastRuns items={past} onChanged={refresh} />
     </div>
   );

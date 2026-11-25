@@ -1,13 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { getWeekly, type WeeklyView } from "../../../lib/performanceApi";
 
 const TONE: Record<string, string> = { urgent: "border-red-200 bg-red-50 text-red-700", action: "border-amber-200 bg-amber-50 text-amber-800", info: "border-mist-200 text-ink-700" };
 
 /** This week's conversations, most pressing first. Built from verified figures and open items; changes nothing. */
-export default function WeeklyViewSection() {
-  const [w, setW] = useState<WeeklyView | null>(null);
+export type WeeklyInitial = { value: WeeklyView | null };
+
+/** `initial` (optional) is what the page already fetched, so the section shows with the rest of the page. */
+export default function WeeklyViewSection({ initial }: { initial?: WeeklyInitial }) {
+  const [w, setW] = useState<WeeklyView | null>(initial ? initial.value : null);
+  const seeded = useRef(!!initial);
   useEffect(() => {
+    if (seeded.current) { seeded.current = false; return; }
     let cancelled = false;
     getWeekly().then((d) => !cancelled && setW(d)).catch(() => undefined);
     return () => {

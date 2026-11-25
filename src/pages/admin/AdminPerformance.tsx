@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, Plus, Pencil, Check, X } from "lucide-react";
 import {
   createStaff,
@@ -93,7 +93,17 @@ export default function AdminPerformance() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(""); // what is searched for (follows the box 300 ms after you stop typing)
+  const [qInput, setQInput] = useState(""); // what is in the box
+  useEffect(() => {
+    const t = setTimeout(() => setQ(qInput), 300);
+    return () => clearTimeout(t);
+  }, [qInput]);
+  // True when the list loaded without a search term held everyone (fewer than the server's page size). Then typing just filters that
+  // list in the browser, so results follow every keystroke with no wait and no request. If there are more people than one page,
+  // the server search (q, after the 300 ms pause) is used as before.
+  const [listComplete, setListComplete] = useState(false);
+  const serverQ = listComplete ? "" : q;
   const [roleFilter, setRoleFilter] = useState("");
   const [unitFilter, setUnitFilter] = useState("");
   const [showInactive, setShowInactive] = useState(false);
@@ -110,19 +120,25 @@ export default function AdminPerformance() {
   // filters and the table appear at once instead of filling in one after another. Units and levels are fetched on the first
   // load only; later filter changes refresh just the staff.
   const lookupsLoaded = useRef(false);
+  const lastTick = useRef(reloadTick);
   useEffect(() => {
     let cancelled = false;
+    // Typing in the search box or changing a filter only needs the staff list again. The roles and the manager list are fetched on the
+    // first load and after a save (reloadTick), not on every keystroke.
+    const full = !lookupsLoaded.current || lastTick.current !== reloadTick;
     Promise.all([
-      getStaff({ q, role_id: roleFilter, unit_id: unitFilter, include_inactive: showInactive }),
-      getPerformanceRoles(),
-      getStaff().then((all) => all.items).catch(() => null),
+      getStaff({ q: serverQ, role_id: roleFilter, unit_id: unitFilter, include_inactive: showInactive }),
+      full ? getPerformanceRoles() : Promise.resolve(null),
+      full ? getStaff().then((all) => all.items).catch(() => null) : Promise.resolve(null),
       lookupsLoaded.current ? Promise.resolve(null) : getUnits().then((d) => d.items).catch(() => null),
       lookupsLoaded.current ? Promise.resolve(null) : getLevels().then((d) => d.items).catch(() => null),
     ])
       .then(([s, r, all, u, l]) => {
         if (cancelled) return;
+        if (full) lastTick.current = reloadTick; // only once the fresh lookups have actually landed
         setStaff(s.items);
-        setRoles(r.items);
+        if (!serverQ) setListComplete(s.items.length >= s.total);
+        if (r) setRoles(r.items);
         if (all) setManagers(all);
         if (u) setUnits(u);
         if (l) setLevels(l);
@@ -138,7 +154,11 @@ export default function AdminPerformance() {
     return () => {
       cancelled = true;
     };
-  }, [q, roleFilter, unitFilter, showInactive, reloadTick]);
+  }, [serverQ, roleFilter, unitFilter, showInactive, reloadTick]);
+
+  // What the table shows: the loaded list narrowed by what is in the box right now (same match as the server: part of the name, any case).
+  const needle = qInput.trim().toLowerCase();
+  const shown = useMemo(() => (needle ? staff.filter((s) => s.full_name.toLowerCase().includes(needle)) : staff), [staff, needle]);
 
   useEffect(() => {
     if (!editingId) return;
@@ -324,7 +344,7 @@ export default function AdminPerformance() {
       <div className="rounded-2xl border border-mist-200 bg-surface p-5">
         {!loading && (
           <div className="mb-4 flex flex-wrap gap-2">
-            <input className={input} placeholder="Search name…" value={q} onChange={(e) => setQ(e.target.value)} />
+            <input className={input} placeholder="Search name…" value={qInput} onChange={(e) => setQInput(e.target.value)} />
             <select className={input} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
               <option value="">All roles</option>
               {roles.map((r) => (
@@ -345,8 +365,10 @@ export default function AdminPerformance() {
 
         {loading ? (
           <p className="text-sm text-ink-500">Loading…</p>
-        ) : staff.length === 0 ? (
-          <p className="text-sm text-ink-500">No staff profiles yet.{canEdit ? " Use “Add staff” to create the first one." : ""}</p>
+        ) : shown.length === 0 ? (
+          <p className="text-sm text-ink-500">
+            {needle ? `No one matches “${qInput.trim()}”.` : <>No staff profiles yet.{canEdit ? " Use “Add staff” to create the first one." : ""}</>}
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
@@ -363,7 +385,7 @@ export default function AdminPerformance() {
                 </tr>
               </thead>
               <tbody>
-                {staff.map((s) => (
+                {shown.map((s) => (
                   <tr key={s.id} className="border-b border-mist-100 text-ink-700">
                     <td className="py-2.5 pr-3 font-medium">{s.full_name}</td>
                     <td className="py-2.5 pr-3">{s.performance_role_name}</td>
