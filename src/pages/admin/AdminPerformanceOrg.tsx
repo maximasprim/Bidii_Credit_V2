@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertCircle, AlertTriangle, ChevronDown, ChevronRight, Info } from "lucide-react";
 import { usePageMeta } from "../../lib/usePageMeta";
-import { getCurrentAdminRole } from "../../lib/adminApi";
 import StatusBadge from "../../components/admin/StatusBadge";
 import OrgEditor, { type OrgEditorInitial } from "../../components/admin/performance/OrgEditor";
 import OrgChartView from "../../components/admin/performance/OrgChartView";
@@ -23,6 +22,7 @@ import {
   type SetupPreview,
   type SetupResult,
 } from "../../lib/performanceApi";
+import { usePerformanceCapabilities } from "../../lib/usePerformanceCapabilities";
 
 const card = "rounded-2xl border border-mist-200 bg-surface p-5";
 const heading = { color: "var(--color-ink-900)" } as const;
@@ -218,20 +218,22 @@ const ok = <T,>(r: PromiseSettledResult<T>): T | null => (r.status === "fulfille
 /** Fetches every part of the page at once and shows the page only when they have all arrived (or failed), so nothing pops in afterwards. */
 export default function AdminPerformanceOrg() {
   usePageMeta("Organisation chart");
-  const role = getCurrentAdminRole();
-  const isAdmin = role === "admin";
-  const canSeeHealth = isAdmin || role === "hr";
+  const { can, ready } = usePerformanceCapabilities();
+  const canHealth = can("org.health");
+  const canPlace = can("org.placement");
+  const canSetup = can("orgsetup.manage");
   const [boot, setBoot] = useState<Boot | null>(null);
 
   useEffect(() => {
+    if (!ready) return undefined; // wait until we know what this person may see, so nothing pops in afterwards
     let cancelled = false;
     Promise.allSettled([
       getOrgTree(false),
-      canSeeHealth ? getOrgHealth() : Promise.resolve(null),
+      canHealth ? getOrgHealth() : Promise.resolve(null),
       getOrgStructure(false),
-      canSeeHealth ? getOrgLayout() : Promise.resolve(null),
-      canSeeHealth ? getStaff() : Promise.resolve(null),
-      isAdmin ? getUnitDuplicates() : Promise.resolve(null),
+      canPlace ? getOrgLayout() : Promise.resolve(null),
+      canPlace ? getStaff() : Promise.resolve(null),
+      canSetup ? getUnitDuplicates() : Promise.resolve(null),
     ]).then(([tree, health, structure, layout, staff, dups]) => {
       if (cancelled) return;
       const staffList = ok(staff);
@@ -250,7 +252,7 @@ export default function AdminPerformanceOrg() {
     return () => {
       cancelled = true;
     };
-  }, [canSeeHealth, isAdmin]);
+  }, [ready, canHealth, canPlace, canSetup]);
 
   if (!boot) {
     return (
@@ -267,9 +269,11 @@ export default function AdminPerformanceOrg() {
 }
 
 function OrgPage({ boot }: { boot: Boot }) {
-  const role = getCurrentAdminRole();
-  const isAdmin = role === "admin";
-  const canSeeHealth = isAdmin || role === "hr";
+  const { can } = usePerformanceCapabilities();
+  const canHealth = can("org.health");
+  const canPlace = can("org.placement");
+  const canStructure = can("structure.edit");
+  const canSetup = can("orgsetup.manage");
   const [roots, setRoots] = useState<OrgNode[]>(boot.tree?.roots ?? []);
   const [total, setTotal] = useState(boot.tree?.total ?? 0);
   const [health, setHealth] = useState<OrgHealth | null>(boot.health);
@@ -314,7 +318,7 @@ function OrgPage({ boot }: { boot: Boot }) {
   }, [inactive, reload]);
 
   useEffect(() => {
-    if (!canSeeHealth || boot.health) return;
+    if (!canHealth || boot.health) return;
     let cancelled = false;
     getOrgHealth()
       .then((h) => {
@@ -324,7 +328,7 @@ function OrgPage({ boot }: { boot: Boot }) {
     return () => {
       cancelled = true;
     };
-  }, [canSeeHealth, boot.health]);
+  }, [canHealth, boot.health]);
 
   const visible = useMemo(() => visibleIds(roots, q), [roots, q]);
 
@@ -342,7 +346,7 @@ function OrgPage({ boot }: { boot: Boot }) {
         </div>
       )}
 
-      {canSeeHealth && <OrgEditor canWrite={isAdmin} canPlace={canSeeHealth} onChanged={() => setReload((n) => n + 1)} initial={boot.editor} />}
+      {(canPlace || canStructure) && <OrgEditor canWrite={canStructure} canPlace={canPlace} onChanged={() => setReload((n) => n + 1)} initial={boot.editor} />}
 
       <section className={card}>
         <div className="mb-3 flex flex-wrap items-center gap-3">
@@ -382,7 +386,7 @@ function OrgPage({ boot }: { boot: Boot }) {
       </section>
 
       {health && <Health health={health} />}
-      {isAdmin && <Setup />}
+      {canSetup && <Setup />}
     </div>
   );
 }

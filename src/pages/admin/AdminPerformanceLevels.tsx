@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertCircle, Check } from "lucide-react";
 import { usePageMeta } from "../../lib/usePageMeta";
-import { getCurrentAdminRole } from "../../lib/adminApi";
 import {
   createLevel,
   getLevels,
@@ -13,6 +12,7 @@ import {
   type PerformanceLevel,
   type PerformanceRole,
 } from "../../lib/performanceApi";
+import { usePerformanceCapabilities } from "../../lib/usePerformanceCapabilities";
 
 const input = "rounded-lg border border-mist-200 bg-surface px-3 py-2 text-sm text-ink-700 focus:outline-none disabled:opacity-60";
 const card = "rounded-2xl border border-mist-200 bg-surface p-5";
@@ -36,8 +36,8 @@ const fromLevel = (l: PerformanceLevel): Draft => ({
 
 export default function AdminPerformanceLevels() {
   usePageMeta("Levels");
-  const adminRole = getCurrentAdminRole();
-  const canEdit = adminRole === "admin" || adminRole === "hr"; // administrators and HR can change levels
+  const { can, ready } = usePerformanceCapabilities();
+  const canEdit = can("levels.edit");
 
   const [roles, setRoles] = useState<PerformanceRole[]>([]);
   const [roleId, setRoleId] = useState("");
@@ -224,7 +224,7 @@ export default function AdminPerformanceLevels() {
             </tbody>
           </table>
         </div>
-        {!canEdit && <p className="mt-3 text-xs text-ink-500">Only administrators and HR can change levels.</p>}
+        {!canEdit && ready && <p className="mt-3 text-xs text-ink-500">You don't have permission to change levels.</p>}
       </section>
 
       {canEdit && draft && (

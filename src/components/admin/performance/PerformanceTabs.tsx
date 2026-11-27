@@ -16,16 +16,17 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
-import { useAdminAuth } from "../../../lib/AdminAuthContext";
+import { usePerformanceCapabilities } from "../../../lib/usePerformanceCapabilities";
 
-type Tab = { to: string; label: string; icon: LucideIcon; end?: boolean; adminOnly?: boolean };
+/** `needs`: the tab shows when the person has at least one of these permissions (none listed = everyone). */
+type Tab = { to: string; label: string; icon: LucideIcon; end?: boolean; needs?: string[] };
 
 /** The same destinations, in the same order, as the old row of links (Staff first so there is always a way back). */
 const TABS: Tab[] = [
   { to: "/admin/performance", label: "Staff", icon: Users, end: true },
   { to: "/admin/performance/org", label: "Organisation chart", icon: Building2 },
   { to: "/admin/performance/targets", label: "Targets", icon: Target },
-  { to: "/admin/performance/levels", label: "Levels", icon: Layers, adminOnly: true },
+  { to: "/admin/performance/levels", label: "Levels", icon: Layers, needs: ["levels.edit"] },
   { to: "/admin/performance/entries", label: "Monthly figures", icon: CalendarClock },
   { to: "/admin/performance/reports", label: "Reports", icon: FileText },
   { to: "/admin/performance/operations", label: "Operations", icon: Settings2 },
@@ -34,21 +35,20 @@ const TABS: Tab[] = [
   { to: "/admin/performance/pack", label: "Board pack", icon: Briefcase },
   { to: "/admin/performance/suggestions", label: "Suggestions", icon: Sparkles },
   { to: "/admin/performance/appraisals", label: "Appraisals", icon: ClipboardCheck },
-  { to: "/admin/performance/governance", label: "Governance", icon: ShieldCheck, adminOnly: true },
-  { to: "/admin/performance/import", label: "Import from Excel", icon: Upload, adminOnly: true },
+  { to: "/admin/performance/governance", label: "Governance", icon: ShieldCheck, needs: ["locks.manage", "governance.notice", "retention.view", "notifications.status"] },
+  { to: "/admin/performance/import", label: "Import from Excel", icon: Upload, needs: ["imports.manage"] },
 ];
 
 export default function PerformanceTabs() {
-  const { role } = useAdminAuth();
-  // Governance and Import are for administrators and HR only, as before.
-  const canEdit = role === "admin" || role === "hr";
+  const { can } = usePerformanceCapabilities();
+  // Levels, Governance and Import show for people who hold at least one of the permissions they need (set on Roles & Permissions).
 
   return (
     <nav
       aria-label="Staff Performance"
       className="mb-5 flex gap-1 overflow-x-auto rounded-2xl border border-mist-200 bg-surface p-1.5 md:flex-wrap md:overflow-visible"
     >
-      {TABS.filter((t) => !t.adminOnly || canEdit).map((t) => {
+      {TABS.filter((t) => !t.needs || t.needs.some(can)).map((t) => {
         const Icon = t.icon;
         return (
           <NavLink

@@ -2,7 +2,6 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertCircle, Check } from "lucide-react";
 import { usePageMeta } from "../../lib/usePageMeta";
-import { getCurrentAdminRole } from "../../lib/adminApi";
 import {
   bulkTargets,
   decideTargetRequest,
@@ -27,6 +26,7 @@ import {
   type TargetHistoryRow,
   type TargetRequest,
 } from "../../lib/performanceApi";
+import { usePerformanceCapabilities } from "../../lib/usePerformanceCapabilities";
 
 const input = "rounded-lg border border-mist-200 bg-surface px-3 py-2 text-sm text-ink-700 focus:outline-none disabled:opacity-60";
 const card = "rounded-2xl border border-mist-200 bg-surface p-5";
@@ -210,8 +210,9 @@ function Requests({ canSet, tick, onDone, initial }: { canSet: boolean; tick: nu
 
 export default function AdminPerformanceTargets() {
   usePageMeta("Targets");
-  const adminRole = getCurrentAdminRole();
-  const canSet = adminRole === "admin" || adminRole === "hr";
+  const { can } = usePerformanceCapabilities();
+  const canSet = can("targets.set");
+  const canDecide = can("targets.decide");
 
   const [roles, setRoles] = useState<PerformanceRole[]>([]);
   const [units, setUnits] = useState<PerformanceUnit[]>([]);
@@ -335,7 +336,7 @@ export default function AdminPerformanceTargets() {
         </p>
       )}
 
-      <Requests canSet={canSet} tick={tick} onDone={done} initial={requestsInit ?? undefined} />
+      <Requests canSet={canDecide} tick={tick} onDone={done} initial={requestsInit ?? undefined} />
 
       <section className={card}>
         <div className="mb-4 flex flex-wrap items-end gap-3">

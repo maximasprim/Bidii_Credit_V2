@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { AlertCircle, ArrowLeft, Check, Lock, Plus, Sparkles, Trash2, Upload } from "lucide-react";
 import { usePageMeta } from "../../lib/usePageMeta";
-import { getCurrentAdminRole } from "../../lib/adminApi";
 import {
   downloadAppraisalTemplate,
   downloadAppraisalTemplateDocx,
@@ -20,6 +19,7 @@ import {
   type RoleVersion,
   type VersionSummary,
 } from "../../lib/performanceApi";
+import { usePerformanceCapabilities } from "../../lib/usePerformanceCapabilities";
 
 const input = "w-full rounded-lg border border-mist-200 bg-surface px-3 py-2 text-sm text-ink-700 focus:outline-none disabled:opacity-60";
 const card = "rounded-2xl border border-mist-200 bg-surface p-5";
@@ -58,8 +58,8 @@ export default function AdminPerformanceRole() {
   usePageMeta("Job role - JD & KPIs");
   const { roleId = "" } = useParams();
   const navigate = useNavigate();
-  const role = getCurrentAdminRole();
-  const isAdmin = role === "admin" || role === "hr"; // administrators and HR can edit job descriptions
+  const { can, ready } = usePerformanceCapabilities();
+  const canEdit = can("roles.jd");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [options, setOptions] = useState<JDOptions | null>(null);
@@ -100,7 +100,7 @@ export default function AdminPerformanceRole() {
     );
   if (!loaded || !draft || !options) return <p className="text-sm text-ink-500">Loading…</p>;
 
-  const readOnly = !isAdmin || !loaded.is_latest;
+  const readOnly = !canEdit || !loaded.is_latest;
   const { jd } = draft;
   const setJd = (patch: Partial<JobDescription>) => setDraft({ ...draft, jd: { ...jd, ...patch } });
   const setResp = (i: number, patch: Partial<JDResponsibility>) =>
@@ -450,7 +450,7 @@ export default function AdminPerformanceRole() {
           <button type="button" className={`${btn} self-end`} onClick={() => navigate("/admin/performance-settings")}>Close</button>
         </div>
       ) : (
-        <p className="text-xs text-ink-500">{isAdmin ? "Switch back to the current version to edit." : "Only administrators and HR can edit job descriptions."}</p>
+        <p className="text-xs text-ink-500">{canEdit ? "Switch back to the current version to edit." : ready ? "You don't have permission to edit job descriptions." : ""}</p>
       )}
       {msg && (
         <p role="status" className={`flex items-center gap-1.5 text-sm ${msg.ok ? "text-green-700" : "text-red-600"}`}>

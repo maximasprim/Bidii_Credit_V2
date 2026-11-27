@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { AlertCircle, Check, RotateCcw, Save } from "lucide-react";
+import { ApiError } from "../../lib/api";
+import { getPermissionMatrix, type PermissionMatrix } from "../../lib/performancePermissionsApi";
 import { getAllRolePermissions, updateRolePermissions, type RolePermissionsData } from "../../lib/rolePermissionsApi";
 import { roleLabel, DEFAULT_MENU_ACCESS, type AdminRole } from "../../lib/roleAccess";
 import { useAdminAuth } from "../../lib/AdminAuthContext";
 import { usePageMeta } from "../../lib/usePageMeta";
+import PerformancePermissionsMatrix from "../../components/admin/performance/PerformancePermissionsMatrix";
 
 export default function AdminRolePermissions() {
   usePageMeta("Roles & Permissions");
@@ -12,6 +15,9 @@ export default function AdminRolePermissions() {
   const [data, setData] = useState<RolePermissionsData | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  // The Staff Performance permissions load alongside the menus, so the whole page appears at once.
+  const [matrix, setMatrix] = useState<PermissionMatrix | null>(null);
+  const [matrixError, setMatrixError] = useState<string | null>(null);
 
   // Local, per-role editable selection - keyed by role, value is a Set of
   // menu paths currently checked in that role's column. Seeded from
@@ -23,18 +29,24 @@ export default function AdminRolePermissions() {
 
   useEffect(() => {
     let cancelled = false;
-    getAllRolePermissions()
-      .then((res) => {
+    Promise.allSettled([getAllRolePermissions(), getPermissionMatrix()])
+      .then(([menus, perms]) => {
         if (cancelled) return;
-        setData(res);
-        const seeded: Record<string, Set<string>> = {};
-        for (const item of res.items) seeded[item.role] = new Set(item.allowed_menus);
-        setSelections(seeded);
-        setLoadError(null);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        setLoadError(err instanceof Error ? err.message : "Couldn't load role permissions.");
+        if (menus.status === "fulfilled") {
+          const res = menus.value;
+          setData(res);
+          const seeded: Record<string, Set<string>> = {};
+          for (const item of res.items) seeded[item.role] = new Set(item.allowed_menus);
+          setSelections(seeded);
+          setLoadError(null);
+        } else {
+          setLoadError(menus.reason instanceof Error ? menus.reason.message : "Couldn't load role permissions.");
+        }
+        if (perms.status === "fulfilled") setMatrix(perms.value);
+        else if (!(perms.reason instanceof ApiError && perms.reason.status === 404)) {
+          // 404 just means the Staff Performance module is switched off: nothing to show. Anything else is worth saying.
+          setMatrixError(perms.reason instanceof Error ? perms.reason.message : "Couldn't load the Staff Performance permissions.");
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -196,6 +208,14 @@ export default function AdminRolePermissions() {
           </table>
         </div>
       ) : null}
+
+      {!loading && matrixError && (
+        <div className="flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm text-red-600">
+          <AlertCircle size={16} />
+          {matrixError}
+        </div>
+      )}
+      {!loading && matrix && <PerformancePermissionsMatrix initial={matrix} />}
     </div>
   );
 }

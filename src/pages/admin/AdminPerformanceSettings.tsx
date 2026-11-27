@@ -11,10 +11,10 @@ import {
   type PerformanceRole,
   type RoleKind,
 } from "../../lib/performanceApi";
-import { useAdminAuth } from "../../lib/AdminAuthContext";
 import { usePageMeta } from "../../lib/usePageMeta";
 import { Link } from "react-router-dom";
 import RatingScaleEditor from "../../components/admin/RatingScaleEditor";
+import { usePerformanceCapabilities } from "../../lib/usePerformanceCapabilities";
 
 const input = "rounded-lg border border-mist-200 bg-surface px-3 py-2 text-sm text-ink-700 focus:outline-none";
 const card = "rounded-2xl border border-mist-200 bg-surface p-5";
@@ -26,8 +26,10 @@ const KIND_LABEL: Record<RoleKind, string> = {
 
 export default function AdminPerformanceSettings() {
   usePageMeta("Performance Settings");
-  const { role } = useAdminAuth();
-  const isAdmin = role === "admin" || role === "hr"; // administrators and HR can view and edit the performance settings
+  const { can, ready } = usePerformanceCapabilities();
+  const canConfig = can("settings.edit");
+  const canRoles = can("roles.edit");
+  const canJd = can("roles.jd");
 
   const [cfg, setCfg] = useState<PerformanceConfig | null>(null);
   const [version, setVersion] = useState(0);
@@ -61,7 +63,7 @@ export default function AdminPerformanceSettings() {
     };
   }, [tick]);
 
-  if (!isAdmin) return <p className="text-sm text-ink-500">Only administrators and HR can change performance settings.</p>;
+  if (ready && !canConfig && !canRoles && !canJd) return <p className="text-sm text-ink-500">You don't have permission to change performance settings.</p>;
   if (error)
     return (
       <div className="flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
@@ -181,9 +183,13 @@ export default function AdminPerformanceSettings() {
         {cfgMsg && (
           <p className={`mt-4 rounded-lg border p-2.5 text-xs ${cfgMsg.ok ? "border-green-200 bg-green-50 text-green-700" : "border-red-200 bg-red-50 text-red-600"}`}>{cfgMsg.text}</p>
         )}
-        <button onClick={saveConfig} disabled={saving} className="mt-4 flex items-center gap-1.5 rounded-full bg-ink-900 px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-60">
-          <Check size={13} /> {saving ? "Saving…" : "Save settings"}
-        </button>
+        {canConfig ? (
+          <button onClick={saveConfig} disabled={saving} className="mt-4 flex items-center gap-1.5 rounded-full bg-ink-900 px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-60">
+            <Check size={13} /> {saving ? "Saving…" : "Save settings"}
+          </button>
+        ) : (
+          ready && <p className="mt-4 text-xs text-ink-500">You can view these settings but not change them.</p>
+        )}
       </section>
 
       <section className={card}>
@@ -191,7 +197,7 @@ export default function AdminPerformanceSettings() {
         <p className="mb-4 text-xs text-ink-500">
           These are job families (e.g. Credit Risk Analyst), separate from dashboard login roles. Each gets its own job description and KPIs in the next phase.
         </p>
-        <form onSubmit={addRole} className="mb-4 flex flex-wrap gap-2">
+        {canRoles && <form onSubmit={addRole} className="mb-4 flex flex-wrap gap-2">
           <input className={input} placeholder="New role name" value={newName} onChange={(e) => setNewName(e.target.value)} />
           <input className={input} placeholder="Department (optional)" value={newDept} onChange={(e) => setNewDept(e.target.value)} />
           <select className={input} value={newKind} onChange={(e) => setNewKind(e.target.value as RoleKind)}>
@@ -202,7 +208,7 @@ export default function AdminPerformanceSettings() {
           <button className="flex items-center gap-1.5 rounded-full border border-mist-200 px-3 py-1.5 text-xs font-semibold text-ink-700 hover:bg-mist-50">
             <Plus size={13} /> Add role
           </button>
-        </form>
+        </form>}
         <div className="space-y-2">
           {roles.map((r) => (
             <div key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-mist-200 p-3">
@@ -218,10 +224,12 @@ export default function AdminPerformanceSettings() {
                 <Link to={`/admin/performance-settings/roles/${r.id}`} className="rounded-lg border border-mist-200 px-2.5 py-1.5 text-xs font-semibold text-ink-700">
                   JD &amp; KPIs
                 </Link>
-                <button onClick={() => toggleRole(r)} className="rounded-full border border-mist-200 px-3 py-1 text-xs font-semibold text-ink-700 hover:bg-mist-50">
-                  {r.is_active ? "Deactivate" : "Reactivate"}
-                </button>
-                {!r.is_system && (
+                {canRoles && (
+                  <button onClick={() => toggleRole(r)} className="rounded-full border border-mist-200 px-3 py-1 text-xs font-semibold text-ink-700 hover:bg-mist-50">
+                    {r.is_active ? "Deactivate" : "Reactivate"}
+                  </button>
+                )}
+                {canRoles && !r.is_system && (
                   <button onClick={() => removeRole(r)} aria-label={`Delete ${r.name}`} className="rounded-full p-1.5 text-red-500 hover:bg-red-50">
                     <Trash2 size={14} />
                   </button>
