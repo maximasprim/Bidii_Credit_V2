@@ -5,6 +5,7 @@ import Footer from "./components/layout/Footer";
 import StickyApplyCTA from "./components/layout/StickyApplyCTA";
 import Home from "./pages/Home";
 import { AdminAuthProvider } from "./lib/AdminAuthContext";
+import { useAdminManifest } from "./lib/adminPwa";
 import { EngagementProvider } from "./lib/EngagementContext";
 import IntentPrompt from "./components/ui/IntentPrompt";
 import LeadCaptureModal from "./components/ui/LeadCaptureModal";
@@ -128,6 +129,7 @@ function Shell() {
 }
 
 function AdminApp() {
+  useAdminManifest(); 
   return (
       <Suspense fallback={<RouteFallback />}>
         <Routes>

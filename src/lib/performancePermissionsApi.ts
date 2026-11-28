@@ -7,7 +7,7 @@ export interface PermissionCell {
   default: boolean;
   overridden: boolean; // changed from the built-in default
   menu_missing: boolean; // allowed, but the role can't open the page this belongs to
-  locked: boolean;
+  locked: boolean; // organisation-wide capability: can't be limited to a team
 }
 export interface PermissionCapability {
   key: string;

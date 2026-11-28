@@ -1,4 +1,5 @@
 import { ApiError } from "./api";
+import { queryClient } from "./queryClient";
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "https://bidii-server.onrender.com";
 export const ADMIN_TOKEN_KEY = "bidii_admin_token";
@@ -46,10 +47,12 @@ export function getAdminToken(): string | null {
 }
 
 export function setAdminToken(token: string) {
+  queryClient.clear(); // never carry one admin's cached data into the next session
   localStorage.setItem(ADMIN_TOKEN_KEY, token);
 }
 
 export function clearAdminToken() {
+  queryClient.clear();
   localStorage.removeItem(ADMIN_TOKEN_KEY);
 }
 

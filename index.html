@@ -6,6 +6,23 @@
     <link rel="icon" type="image/png" href="/Main_Favicon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
+    <script>
+      // Opening the staff portal directly (/admin/...)? Use the staff app manifest so the browser
+      // offers to install "Bidii Staff" (opens on the login page) instead of the public site, and
+      // keep the install prompt for the Install button on the login page.
+      (function () {
+        try {
+          if (location.pathname === "/admin" || location.pathname.indexOf("/admin/") === 0) {
+            var m = document.querySelector('link[rel="manifest"]');
+            if (m) m.setAttribute("href", "/admin.webmanifest");
+            window.addEventListener("beforeinstallprompt", function (e) {
+              e.preventDefault();
+              window.__bidiiInstallPrompt = e;
+            });
+          }
+        } catch (e) {}
+      })();
+    </script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0B2A4A" media="(prefers-color-scheme: light)" />
